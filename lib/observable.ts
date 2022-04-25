@@ -4,12 +4,12 @@ type Changed = boolean;
 
 interface OnCreateObservable<T> {
   target?: T;
-  get?: (target: T, p: keyof T) => unknown;
+  get?: (target: T, p: keyof T) => any;
   set?: (
     target: T,
     p: keyof T,
-    newValue: unknown,
-    oldValue: unknown
+    newValue: any,
+    oldValue: any
   ) => Changed;
 }
 

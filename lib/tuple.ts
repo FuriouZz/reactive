@@ -1,6 +1,6 @@
 import { Observable, createObservable } from "./observable";
 
-type GetType<T> = T extends (infer U)[] ? U : unknown;
+type GetType<T> = T extends (infer U)[] ? U : any;
 
 interface TupleMethods<T> {
   set(...values: GetType<T>[]): void;
@@ -12,15 +12,15 @@ type TupleSchema = Record<string | number | symbol, number>;
 type TupleFull<T, TComponents> = Record<keyof TComponents, GetType<T>>;
 
 export type ReactiveTuple<
-  T extends unknown[],
+  T extends any[],
   TComponents extends TupleSchema,
-  TMethods extends Record<string, (...args: unknown[]) => unknown>
+  TMethods extends Record<string, (...args: any) => any>
 > = Observable<TupleFull<T, TComponents>> & TupleMethods<T> & TMethods;
 
 export const createReactiveTuple = <
-  T extends unknown[],
+  T extends any[],
   TComponents extends TupleSchema,
-  TMethods extends Record<string, (...args: unknown[]) => unknown>
+  TMethods extends Record<string, (...args: any) => any>
 >(options: {
   target: T;
   components: TComponents;
