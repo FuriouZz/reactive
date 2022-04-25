@@ -10,6 +10,7 @@
     "lib": "lib"
   },
   "scripts": {
+    "start": "tsc -p tsconfig.json -w",
     "build": "tsc -p tsconfig.json",
     "bump": "node bump.js",
     "publish": "node publish.js"
@@ -17,7 +18,7 @@
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "license": "Apache Licence 2.0",
   "dependencies": {
-    "@furiouzz/lol": "^0.0.34",
+    "@furiouzz/lol": "^0.0.35",
     "typescript": "^4.6.3"
   },
   "devDependencies": {

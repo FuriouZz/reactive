@@ -18,12 +18,12 @@ export const unref = <T>(observable: ObservableRef<T>): T | null => {
   return null;
 };
 
-export const shallowRef = <T>(value: T) => {
+export const lazyRef = <T>(value: T) => {
   return createObservable({
     target: { value },
     set(target, key, newValue) {
       if (key === "value") {
-        target[key] = newValue;
+        target[key] = newValue as T;
       }
       return false;
     },

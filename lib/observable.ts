@@ -1,14 +1,11 @@
-import { Dispatcher } from "@furiouzz/lol";
+import Dispatcher from "./Dispatcher";
+
+type Changed = boolean;
 
 interface OnCreateObservable<T> {
   target?: T;
-  get?: (target: T, p: keyof T) => any;
-  set?: (
-    target: T,
-    p: keyof T,
-    newValue: any,
-    oldValue: any
-  ) => boolean;
+  get?: (target: T, p: keyof T) => unknown;
+  set?: (target: T, p: keyof T, newValue: unknown, oldValue: unknown) => Changed;
 }
 
 export interface KeyChangeEvent<T extends object, K extends keyof T> {
@@ -20,11 +17,30 @@ export interface KeyChangeEvent<T extends object, K extends keyof T> {
 export type ChangeEvent = void;
 
 export type Observable<T extends object> = T & {
+  /**
+   * change event dispatcher
+   */
   $change: Dispatcher<ChangeEvent>;
+
+  /**
+   * keyChange event dispatcher
+   */
   $keyChange: Dispatcher<KeyChangeEvent<T, keyof T>>;
+
+  /**
+   * Whether the object is observed or not
+   */
   $isObservable: true;
+
+  /**
+   * Target observed
+   */
   $target: T;
-  $effect: (force?: boolean) => void;
+
+  /**
+   * Trigger change
+   */
+  $effect: (reset?: boolean) => void;
 };
 
 export const createObservable = <T extends object>(
@@ -32,7 +48,7 @@ export const createObservable = <T extends object>(
 ) => {
   const change = new Dispatcher<ChangeEvent>();
   const keyChange = new Dispatcher<KeyChangeEvent<T, keyof T>>();
-  const target = options?.target || {} as T;
+  const target = options?.target || ({} as T);
 
   const set = (target: T, key: keyof T, newValue: any, oldValue: any) => {
     let changed = false;
@@ -53,13 +69,19 @@ export const createObservable = <T extends object>(
     }
   };
 
-  const effect = (force = false) => {
-    if (force) {
+  const effect = (reset = false) => {
+    if (reset) {
+      const initialMuted = change.muted;
+      change.muted = true;
+
       Object.keys(target).forEach((key) => {
         const oldValue = target[key as keyof T];
         const newValue = oldValue;
         set(target, key as keyof T, newValue, oldValue);
       });
+
+      change.muted = initialMuted;
+      change.dispatch();
     } else {
       change.dispatch();
     }
@@ -85,8 +107,7 @@ export const createObservable = <T extends object>(
     },
 
     set(target, key, newValue) {
-      const oldValue =
-        key in target ? target[key as keyof T] : undefined;
+      const oldValue = key in target ? target[key as keyof T] : undefined;
 
       if (oldValue !== newValue) {
         set(target, key as keyof T, newValue, oldValue);
