@@ -5,7 +5,12 @@ type Changed = boolean;
 interface OnCreateObservable<T> {
   target?: T;
   get?: (target: T, p: keyof T) => unknown;
-  set?: (target: T, p: keyof T, newValue: unknown, oldValue: unknown) => Changed;
+  set?: (
+    target: T,
+    p: keyof T,
+    newValue: unknown,
+    oldValue: unknown
+  ) => Changed;
 }
 
 export interface KeyChangeEvent<T extends object, K extends keyof T> {
@@ -40,7 +45,7 @@ export type Observable<T extends object> = T & {
   /**
    * Trigger change
    */
-  $effect: (reset?: boolean) => void;
+  $effect: (keys?: (keyof T)[]) => void;
 };
 
 export const createObservable = <T extends object>(
@@ -69,22 +74,24 @@ export const createObservable = <T extends object>(
     }
   };
 
-  const effect = (reset = false) => {
-    if (reset) {
-      const initialMuted = change.muted;
-      change.muted = true;
+  const effect = (keys?: (keyof T)[]) => {
+    const initialMuted = change.muted;
+    change.muted = true;
 
-      Object.keys(target).forEach((key) => {
+    keys = keys === undefined ? (Object.keys(target) as (keyof T)[]) : keys;
+
+    if (keys.length > 0) {
+      keys.forEach((key) => {
         const oldValue = target[key as keyof T];
         const newValue = oldValue;
-        set(target, key as keyof T, newValue, oldValue);
+        if (key in target) {
+          set(target, key as keyof T, newValue, oldValue);
+        }
       });
-
-      change.muted = initialMuted;
-      change.dispatch();
-    } else {
-      change.dispatch();
     }
+
+    change.muted = initialMuted;
+    change.dispatch();
   };
 
   const p = new Proxy(target, {

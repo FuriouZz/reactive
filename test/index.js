@@ -56,7 +56,7 @@ const createSize = (x = 0, y = 0) => {
       changeOrientation() {
         const target = o.$target;
         target.reverse();
-        o.$effect(true); // Force change for each key
+        o.$effect(); // Force change for each key
       },
     },
   });
@@ -79,5 +79,7 @@ sceneSize.y = 768;
 sceneSize.setFrom([1280, 720]);
 sceneSize.changeOrientation();
 
+// Change target without triggering change
 sceneSize.$target.reverse();
-sceneSize.$effect(true);
+// Trigger change
+sceneSize.$effect();

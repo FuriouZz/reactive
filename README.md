@@ -41,7 +41,9 @@ rectangle.height = 600;
 rectangle.x = 10;
 
 // Trigger change on lazy ref
-resized.$effect();
+resized.$effect(); // Trigger a change and a key change on every properties (only "value" here)
+// resized.$effect([]); Trigger a change only
+// resized.$effect(["value"]); Trigger a change and a key change on property "value"
 ```
 
 Use `tuple()` to create an array with named fields
@@ -50,9 +52,8 @@ Use `tuple()` to create an array with named fields
 import { tuple } from "@furiouzz/reactive";
 
 const createSize = (x = 0, y = 0) => {
-  const target = [x, y];
   const o = tuple({
-    target,
+    target: [x, y],
     components: {
       0: 0,
       1: 1,
@@ -66,10 +67,9 @@ const createSize = (x = 0, y = 0) => {
 
     methods: {
       changeOrientation() {
-        const tmp = target[0];
-        target[0] = target[1];
-        target[1] = tmp;
-        o.$effect(true); // Force change for each key
+        const target = o.$target;
+        target.reverse();
+        o.$effect(); // Force change for each key
       },
     },
   });
@@ -93,4 +93,9 @@ sceneSize.x = 1024;
 sceneSize.y = 768;
 sceneSize.setFrom([1280, 720]);
 sceneSize.changeOrientation();
+
+// Change target without triggering change
+sceneSize.$target.reverse();
+// Trigger change
+sceneSize.$effect();
 ```

@@ -45,7 +45,7 @@ export const createReactiveTuple = <
       }
     }
 
-    o.$effect(true);
+    o.$effect();
   };
 
   const setFrom = (values: GetType<T>[]) => {
