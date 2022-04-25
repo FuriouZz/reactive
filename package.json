@@ -18,7 +18,7 @@
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "license": "Apache Licence 2.0",
   "dependencies": {
-    "@furiouzz/lol": "^0.0.35",
+    "@furiouzz/lol": "^0.0.36-beta.0",
     "typescript": "^4.6.3"
   },
   "devDependencies": {
