@@ -1,15 +1,15 @@
 import { Observable, createObservable } from "./observable";
 
-type GetType<T> = T extends (infer U)[] ? U : any;
+export type GetType<T> = T extends (infer U)[] ? U : any;
 
-interface TupleMethods<T> {
+export interface TupleMethods<T> {
   set(...values: GetType<T>[]): void;
   setFrom(values: GetType<T>[]): void;
 }
 
-type TupleSchema = Record<string | number | symbol, number>;
+export type TupleSchema = Record<string | number | symbol, number>;
 
-type TupleFull<T, TComponents> = Record<keyof TComponents, GetType<T>>;
+export type TupleFull<T, TComponents> = Record<keyof TComponents, GetType<T>>;
 
 export type ReactiveTuple<
   T extends any[],

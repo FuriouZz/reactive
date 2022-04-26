@@ -1,8 +1,8 @@
 import Dispatcher from "./Dispatcher";
 
-type Changed = boolean;
+export type Changed = boolean;
 
-interface OnCreateObservable<T> {
+export interface OnCreateObservable<T> {
   target?: T;
   get?: (target: T, p: keyof T) => any;
   set?: (
