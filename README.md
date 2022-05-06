@@ -1,7 +1,5 @@
 Functions to create reactive objects.
 
-Warning: Deeply reactive objects are not supported.
-
 ```ts
 import { observable, ref, lazyRef } from "@furiouzz/reactive";
 
@@ -98,4 +96,22 @@ sceneSize.changeOrientation();
 sceneSize.$target.reverse();
 // Trigger change
 sceneSize.$effect();
+```
+
+```ts
+import { observable } from "@furiouzz/reactive";
+
+const o = observe(
+  { message: "Hello World", count: 0, obj: { plop: true } },
+  { deep: true }
+);
+
+o.$keyChange.on((event) => {
+  console.log(event.key); // "obj" | "obj.plop"
+});
+
+o.obj = null;
+o.obj = { plop: true };
+o.obj.plop = false;
+o.obj = null;
 ```
