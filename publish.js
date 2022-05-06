@@ -7,6 +7,7 @@ async function main() {
   const options = { shell: true, stdio: "inherit" };
   spawnSync("npm run build", options);
   spawnSync("cp package.json dist/package.json", options);
+  spawnSync("cp README.md dist/README.md", options);
   const { editFileSync } = require("@furiouzz/lol/node/fs.js");
   editFileSync("dist/package.json", (v) => {
     const pkg = JSON.parse(v.toString("utf-8"));
