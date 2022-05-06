@@ -2,7 +2,7 @@ import Dispatcher from "./Dispatcher";
 
 export type Changed = boolean;
 
-export interface OnCreateObservable<T> {
+export interface CreateObservableOptions<T> {
   target?: T;
   get?: (target: T, p: keyof T) => any;
   set?: (
@@ -14,14 +14,16 @@ export interface OnCreateObservable<T> {
 }
 
 export interface KeyChangeEvent<T extends object, K extends keyof T> {
-  key: K;
+  key: K | Omit<string, K>;
   newValue: T[K] | null | undefined;
   oldValue: T[K] | null | undefined;
 }
 
 export type ChangeEvent = void;
 
-export type Observable<T extends object> = T & {
+export type Observable<T extends object> = {
+  [K in keyof T]: T[K] extends object ? Observable<T[K]> : T[K];
+} & {
   /**
    * change event dispatcher
    */
@@ -49,14 +51,14 @@ export type Observable<T extends object> = T & {
 };
 
 export const createObservable = <T extends object>(
-  options?: OnCreateObservable<T>
+  options?: CreateObservableOptions<T>
 ) => {
   const change = new Dispatcher<ChangeEvent>();
   const keyChange = new Dispatcher<KeyChangeEvent<T, keyof T>>();
   const target = options?.target || ({} as T);
 
   const set = (target: T, key: keyof T, newValue: any, oldValue: any) => {
-    let changed = false;
+    let changed: Changed = false;
     if (typeof options?.set === "function") {
       changed = options.set(target, key, newValue, oldValue);
     } else {
@@ -127,12 +129,106 @@ export const createObservable = <T extends object>(
   return p as Observable<T>;
 };
 
-export const observe = <T extends object>(target: T) => {
+export const observe = <T extends object>(
+  target: T,
+  options?: { deep?: boolean }
+) => {
+  if (options?.deep) {
+    return createObservableDeeply({ target });
+  }
   return createObservable({ target });
 };
 
+export const createObservableDeeply = <T extends object>(
+  options: CreateObservableOptions<T>
+): Observable<T> => {
+  const reactives: Partial<
+    Record<
+      keyof T,
+      {
+        observable: Observable<object>;
+        unwatch: () => void;
+      }
+    >
+  > = {};
+
+  const createReactiveObject = (
+    key: keyof T,
+    value: object | Observable<object>
+  ) => {
+    const observable = isObservable(value)
+      ? value
+      : createObservableDeeply({ target: value });
+
+    const unwatch = observable.$keyChange.on((event) => {
+      root.$change.dispatch();
+
+      root.$keyChange.dispatch({
+        ...event,
+        key: `${key}.${event.key}`,
+      });
+    });
+
+    return { observable, unwatch };
+  };
+
+  const root = createObservable({
+    target: options.target,
+
+    get(target, key) {
+      if (typeof target[key] !== "object") {
+        return target[key];
+      }
+
+      if (!reactives[key]) {
+        reactives[key] = createReactiveObject(
+          key,
+          target[key] as unknown as object
+        );
+      }
+
+      if (typeof options?.get === "function") {
+        return options.get(target, key);
+      }
+
+      return reactives[key]?.observable;
+    },
+
+    set(target, key, newValue, oldValue) {
+      if (typeof newValue !== "object") {
+        return true;
+      }
+
+      if (reactives[key] && newValue !== reactives[key]?.observable.$target) {
+        const o = reactives[key]!;
+        o.unwatch();
+        delete reactives[key];
+      }
+
+      if (newValue !== null) {
+        reactives[key] = createReactiveObject(
+          key,
+          target[key] as unknown as object | Observable<object>
+        );
+      }
+
+      let changed: Changed = false;
+      if (options.set) {
+        changed = options.set(target, key, newValue, oldValue);
+      } else {
+        changed = true;
+        target[key] = newValue;
+      }
+
+      return changed;
+    },
+  });
+
+  return root;
+};
+
 export const isObservable = <T extends object>(
-  target: T
+  target: any
 ): target is Observable<T> => {
   const t = target as { $isObservable: boolean };
   return typeof t === "object" && t !== null && t.$isObservable;
