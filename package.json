@@ -1,8 +1,8 @@
 {
   "name": "@furiouzz/reactive",
-  "version": "0.0.6-beta.5",
-  "type": "commonjs",
-  "main": "dist/cjs/index.js",
+  "version": "0.0.6-beta.6",
+  "type": "module",
+  "main": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "typings": "dist/types",
   "description": "",
@@ -12,8 +12,8 @@
   "scripts": {
     "start": "tsc -p tsconfig.json -w",
     "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
-    "bump": "node bump.js",
-    "publish": "node publish.js",
+    "bump": "node bump.mjs",
+    "publish": "node publish.mjs",
     "test": "jest --rootDir ./"
   },
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
@@ -38,7 +38,7 @@
       },
       "browser": {
         "require": "./dist/cjs/index.js",
-        "import": "./dist/cjs/index.js",
+        "import": "./dist/esm/index.js",
         "types": "./dist/types/index.d.ts"
       }
     },
