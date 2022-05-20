@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "tsc -p tsconfig.json -w",
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
     "bump": "node bump.js",
     "publish": "node publish.js",
     "test": "jest --rootDir ./"
@@ -31,14 +31,28 @@
   },
   "exports": {
     ".": {
-      "require": "./index.js",
-      "import": "./index.js",
-      "types": "./index.d.ts"
+      "node": {
+        "require": "./dist/cjs/index.js",
+        "import": "./dist/esm/index.js",
+        "types": "./dist/types/index.d.ts"
+      },
+      "browser": {
+        "require": "./dist/cjs/index.js",
+        "import": "./dist/cjs/index.js",
+        "types": "./dist/types/index.d.ts"
+      }
     },
     "./*": {
-      "require": "./*",
-      "import": "./*",
-      "types": "./*"
+      "node": {
+        "require": "./dist/cjs/*",
+        "import": "./dist/esm/*",
+        "types": "./dist/types/*"
+      },
+      "browser": {
+        "require": "./dist/cjs/*",
+        "import": "./dist/cjs/*",
+        "types": "./dist/types/*"
+      }
     }
   }
 }
