@@ -1,10 +1,10 @@
 {
   "name": "@furiouzz/reactive",
-  "version": "0.0.6-beta.6",
+  "version": "0.0.6-beta.7",
   "type": "module",
-  "main": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
-  "typings": "dist/types",
+  "main": "./esm/index.js",
+  "types": "./types/index.d.ts",
+  "typings": "./types",
   "description": "",
   "directories": {
     "lib": "lib"
@@ -32,26 +32,26 @@
   "exports": {
     ".": {
       "node": {
-        "require": "./dist/cjs/index.js",
-        "import": "./dist/esm/index.js",
-        "types": "./dist/types/index.d.ts"
+        "require": "./cjs/index.js",
+        "import": "./esm/index.js",
+        "types": "./types/index.d.ts"
       },
       "browser": {
-        "require": "./dist/cjs/index.js",
-        "import": "./dist/esm/index.js",
-        "types": "./dist/types/index.d.ts"
+        "require": "./cjs/index.js",
+        "import": "./esm/index.js",
+        "types": "./types/index.d.ts"
       }
     },
     "./*": {
       "node": {
-        "require": "./dist/cjs/*",
-        "import": "./dist/esm/*",
-        "types": "./dist/types/*"
+        "require": "./cjs/*",
+        "import": "./esm/*",
+        "types": "./types/*"
       },
       "browser": {
-        "require": "./dist/cjs/*",
-        "import": "./dist/esm/*",
-        "types": "./dist/types/*"
+        "require": "./cjs/*",
+        "import": "./esm/*",
+        "types": "./types/*"
       }
     }
   }
