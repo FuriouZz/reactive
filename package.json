@@ -1,6 +1,6 @@
 {
   "name": "@furiouzz/reactive",
-  "version": "0.0.6-beta.7",
+  "version": "0.0.6-beta.8",
   "type": "module",
   "main": "./esm/index.js",
   "types": "./types/index.d.ts",
