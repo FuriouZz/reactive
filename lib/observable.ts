@@ -132,10 +132,9 @@ export const createObservable = <T extends object>(
     set(target, key, newValue) {
       const oldValue = key in target ? target[key as keyof T] : undefined;
 
-      if (options?.compare)
-        if (!compare(newValue, oldValue)) {
-          set(target, key as keyof T, newValue, oldValue);
-        }
+      if (!compare(newValue, oldValue)) {
+        set(target, key as keyof T, newValue, oldValue);
+      }
 
       return true;
     },
