@@ -5,12 +5,7 @@ export type Changed = boolean;
 export interface CreateObservableOptions<T> {
   target?: T;
   get?: (target: T, p: keyof T) => any;
-  set?: (
-    target: T,
-    p: keyof T,
-    newValue: any,
-    oldValue: any
-  ) => Changed;
+  set?: (target: T, p: keyof T, newValue: any, oldValue: any) => Changed;
 }
 
 export interface KeyChangeEvent<T extends object, K extends keyof T> {
@@ -21,9 +16,7 @@ export interface KeyChangeEvent<T extends object, K extends keyof T> {
 
 export type ChangeEvent = void;
 
-export type Observable<T extends object> = {
-  [K in keyof T]: T[K] extends object ? Observable<T[K]> : T[K];
-} & {
+interface BaseObservable<T extends object> {
   /**
    * change event dispatcher
    */
@@ -48,7 +41,15 @@ export type Observable<T extends object> = {
    * Trigger change
    */
   $effect: (keys?: (keyof T)[]) => void;
-};
+}
+
+// export type ObservableDeeply<T extends object> = {
+//   [K in keyof T]: T[K] extends object ? ObservableDeeply<T[K]> : T[K];
+// } & BaseObservable<T>;
+
+export type Observable<T extends object> = {
+  [K in keyof T]: T[K];
+} & BaseObservable<T>;
 
 export const createObservable = <T extends object>(
   options?: CreateObservableOptions<T>
@@ -129,15 +130,23 @@ export const createObservable = <T extends object>(
   return p as Observable<T>;
 };
 
-export const observe = <T extends object>(
+// export function observe<T extends object>(
+//   target: T,
+//   options?: { deep?: false }
+// ): Observable<T>;
+// export function observe<T extends object>(
+//   target: T,
+//   options: { deep: true }
+// ): ObservableDeeply<T>;
+export function observe<T extends object>(
   target: T,
   options?: { deep?: boolean }
-) => {
+) {
   if (options?.deep) {
     return createObservableDeeply({ target });
   }
   return createObservable({ target });
-};
+}
 
 export const createObservableDeeply = <T extends object>(
   options: CreateObservableOptions<T>
@@ -224,7 +233,8 @@ export const createObservableDeeply = <T extends object>(
     },
   });
 
-  return root;
+  // return root as ObservableDeeply<T>;
+  return root as Observable<T>;
 };
 
 export const isObservable = <T extends object>(
