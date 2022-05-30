@@ -42,6 +42,11 @@ interface BaseObservable<T extends object> {
    * Trigger change
    */
   $effect: (keys?: (keyof T)[]) => void;
+
+  /**
+   * Revoke proxy
+   */
+  $revoke: () => void;
 }
 
 // export type ObservableDeeply<T extends object> = {
@@ -99,7 +104,11 @@ export const createObservable = <T extends object>(
     change.dispatch();
   };
 
-  const p = new Proxy(target, {
+  const revoke = () => {
+    o.revoke();
+  };
+
+  const o = Proxy.revocable(target, {
     get(target, key) {
       if (key === "$change") {
         return change;
@@ -111,6 +120,8 @@ export const createObservable = <T extends object>(
         return target;
       } else if (key === "$effect") {
         return effect;
+      } else if (key === "$revoke") {
+        return revoke;
       } else if (typeof options?.get === "function") {
         return options.get(target, key as keyof T);
       }
@@ -130,18 +141,18 @@ export const createObservable = <T extends object>(
     },
   });
 
-  return p as Observable<T>;
+  return o.proxy as Observable<T>;
 };
 
-export function observe<T extends object>(
+export const observe = <T extends object>(
   target: T,
   options: { deep?: boolean } & Pick<CreateObservableOptions<T>, "compare"> = {}
-) {
+) => {
   if (options?.deep) {
     return createObservableDeeply({ target, ...options });
   }
   return createObservable({ target, ...options });
-}
+};
 
 export const createObservableDeeply = <T extends object>(
   options: CreateObservableOptions<T>
