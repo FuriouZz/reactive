@@ -6,6 +6,7 @@ export interface CreateObservableOptions<T> {
   target?: T;
   get?: (target: T, p: keyof T) => any;
   set?: (target: T, p: keyof T, newValue: any, oldValue: any) => Changed;
+  compare?: (newValue: any, oldValue: any) => boolean;
 }
 
 export interface KeyChangeEvent<T extends object, K extends keyof T> {
@@ -57,6 +58,7 @@ export const createObservable = <T extends object>(
   const change = new Dispatcher<ChangeEvent>();
   const keyChange = new Dispatcher<KeyChangeEvent<T, keyof T>>();
   const target = options?.target || ({} as T);
+  const compare = options?.compare || Object.is;
 
   const set = (target: T, key: keyof T, newValue: any, oldValue: any) => {
     let changed: Changed = false;
@@ -119,9 +121,10 @@ export const createObservable = <T extends object>(
     set(target, key, newValue) {
       const oldValue = key in target ? target[key as keyof T] : undefined;
 
-      if (oldValue !== newValue) {
-        set(target, key as keyof T, newValue, oldValue);
-      }
+      if (options?.compare)
+        if (!compare(newValue, oldValue)) {
+          set(target, key as keyof T, newValue, oldValue);
+        }
 
       return true;
     },
@@ -130,22 +133,14 @@ export const createObservable = <T extends object>(
   return p as Observable<T>;
 };
 
-// export function observe<T extends object>(
-//   target: T,
-//   options?: { deep?: false }
-// ): Observable<T>;
-// export function observe<T extends object>(
-//   target: T,
-//   options: { deep: true }
-// ): ObservableDeeply<T>;
 export function observe<T extends object>(
   target: T,
-  options?: { deep?: boolean }
+  options: { deep?: boolean } & Pick<CreateObservableOptions<T>, "compare"> = {}
 ) {
   if (options?.deep) {
-    return createObservableDeeply({ target });
+    return createObservableDeeply({ target, ...options });
   }
-  return createObservable({ target });
+  return createObservable({ target, ...options });
 }
 
 export const createObservableDeeply = <T extends object>(
@@ -233,7 +228,6 @@ export const createObservableDeeply = <T extends object>(
     },
   });
 
-  // return root as ObservableDeeply<T>;
   return root as Observable<T>;
 };
 
