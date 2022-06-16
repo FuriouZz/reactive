@@ -5,6 +5,7 @@ export type GetType<T> = T extends (infer U)[] ? U : any;
 export interface TupleMethods<T> {
   set(...values: GetType<T>[]): void;
   setFrom(values: GetType<T>[]): void;
+  setScalar(value: GetType<T>): void;
 }
 
 export type TupleSchema = Record<string | number | symbol, number>;
@@ -38,18 +39,23 @@ export const createReactiveTuple = <
   const set = (...values: GetType<T>[]) => {
     if (values.length === 1) {
       target.fill(values[0]);
-    } else {
-      const length = Math.min(target.length, values.length);
+      o.$effect();
+    } else if (target.length === values.length) {
+      const length = target.length;
       for (let i = 0; i < length; i++) {
         target[i] = values[i];
       }
+      o.$effect();
     }
-
-    o.$effect();
   };
 
-  const setFrom = (values: GetType<T>[]) => {
+  const setFrom = (values: T) => {
     set(...values);
+  };
+
+  const setScalar = (value: GetType<T>) => {
+    target.fill(value);
+    o.$effect();
   };
 
   const o = createObservable({
@@ -57,7 +63,10 @@ export const createReactiveTuple = <
 
     // Only get fields and options.methods
     get(target, key) {
-      if (options.methods && options.methods[key as keyof typeof options.methods]) {
+      if (
+        options.methods &&
+        options.methods[key as keyof typeof options.methods]
+      ) {
         return options.methods[key as keyof typeof options.methods];
       }
 
@@ -67,6 +76,9 @@ export const createReactiveTuple = <
         }
         case "setFrom": {
           return setFrom;
+        }
+        case "setScalar": {
+          return setScalar;
         }
       }
 
@@ -90,7 +102,12 @@ export const createReactiveTuple = <
         const index = components[key];
         if (!isNaN(index)) {
           if (options.setter !== undefined) {
-            options.setter(target, index, newValue as GetType<T>, oldValue as GetType<T>);
+            options.setter(
+              target,
+              index,
+              newValue as GetType<T>,
+              oldValue as GetType<T>
+            );
           } else {
             target[index] = newValue;
           }
