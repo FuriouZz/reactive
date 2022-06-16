@@ -179,7 +179,7 @@ export const createObservableDeeply = <T extends object>(
 
       root.$keyChange.dispatch({
         ...event,
-        key: `${key}.${event.key}`,
+        key: `${String(key)}.${event.key}`,
       });
     });
 
