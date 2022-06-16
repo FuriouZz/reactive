@@ -15,7 +15,7 @@ export type ReactiveTuple<
   T extends any[],
   TComponents extends TupleSchema,
   TMethods extends Record<string, (...args: any) => any>
-> = Observable<TupleFull<T, TComponents>> & TupleMethods<T> & TMethods;
+> = Observable<T> & TupleFull<T, TComponents> & TupleMethods<T> & TMethods;
 
 export const createReactiveTuple = <
   T extends any[],
