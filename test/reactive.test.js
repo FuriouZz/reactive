@@ -1,23 +1,51 @@
-import { observe } from "../dist/index";
+import {
+  reactive,
+  onChange,
+  watch,
+  onKeyChange,
+  isObservable,
+  computed,
+  ref,
+} from "../dist/index";
 
 test("Change field", () => {
-  const o = observe({ message: "Hello World" });
+  const o = reactive({ message: "Hello World" });
   o.message = "Hello John";
   expect(o.message).toBe("Hello John");
 });
 
-test("$change", (done) => {
-  const o = observe({ message: "Hello World" });
-  o.$change.once(() => {
+test("onChange", (done) => {
+  const o = reactive({ message: "Hello World" });
+
+  onChange(o, () => {
     expect(o.message).toBe("Hello John");
     done();
   });
+
   o.message = "Hello John";
 });
 
-test("$change2", (done) => {
-  const o = observe({ message: "Hello World", count: 0 });
-  o.$change.on(() => {
+test("watch", (done) => {
+  const o = reactive({ message: "Hello World" });
+
+  let i = 0;
+  watch(() => {
+    if (i === 0) {
+      expect(o.message).toBe("Hello World");
+    } else if (i === 1) {
+      expect(o.message).toBe("Hello John");
+      done();
+    }
+    i++;
+  });
+
+  o.message = "Hello John";
+});
+
+test("onChange2", (done) => {
+  const o = reactive({ message: "Hello World", count: 0 });
+
+  onChange(o, () => {
     if (o.count === 0) {
       expect(o.message).toBe("Hello John");
     } else {
@@ -25,42 +53,41 @@ test("$change2", (done) => {
       done();
     }
   });
+
   o.message = "Hello John";
   o.count++;
 });
 
-test("$keyChange", (done) => {
-  const o = observe({ message: "Hello World", count: 0 });
-  o.$keyChange.once((event) => {
-    expect(event.key).toBe("message");
+test("onKeyChange", (done) => {
+  const o = reactive({ message: "Hello World", count: 0 });
+
+  onKeyChange(o, "message", () => {
+    expect(o.message).toBe("Hello John");
   });
+
   o.message = "Hello John";
 
-  o.$keyChange.once((event) => {
-    expect(event.key).toBe("count");
+  onKeyChange(o, "count", () => {
+    expect(o.count).toBe(1);
     done();
   });
+
   o.count++;
 });
 
 test("deep", () => {
-  const o = observe(
-    { message: "Hello World", count: 0, obj: { plop: true } },
-    { deep: true }
-  );
+  const o = reactive({ message: "Hello World", count: 0, obj: { plop: true } });
 
-  expect(typeof o.obj.$change).toBe("object");
-  expect(typeof o.obj.$keyChange).toBe("object");
-  expect(typeof o.obj.$effect).toBe("function");
-  expect(typeof o.obj.$target).toBe("object");
+  expect(isObservable(o)).toBe(true);
+  expect(isObservable(o.obj)).toBe(true);
 
   const objChange = jest.fn();
   const objPlopChange = jest.fn();
 
-  o.$keyChange.on((event) => {
+  onKeyChange(o, ["obj", "obj.plop"], (event) => {
     if (event.key === "obj") {
       objChange();
-    } else if (event.key = "obj.plop") {
+    } else if ((event.key = "obj.plop")) {
       objPlopChange();
     }
   });
@@ -72,4 +99,28 @@ test("deep", () => {
 
   expect(objChange).toHaveBeenCalledTimes(3);
   expect(objPlopChange).toHaveBeenCalledTimes(1);
+});
+
+test("computed", () => {
+  const o = reactive({ name: "World" });
+  const c = computed(() => `Hello ${o.name}`);
+  expect(c.value).toBe("Hello World");
+
+  o.name = "John";
+  expect(c.value).toBe("Hello John");
+});
+
+test("ref", (done) => {
+  const r = ref(0);
+
+  watch(() => {
+    if (r.value === 0) {
+      expect(r.value).toBe(0);
+    } else {
+      expect(r.value).toBe(1);
+      done();
+    }
+  });
+
+  r.value++;
 });

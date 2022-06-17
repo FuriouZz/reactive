@@ -1,42 +1,25 @@
-import { Observable, createObservable } from "./observable";
-
-export type GetType<T> = T extends (infer U)[] ? U : any;
-
-export interface TupleMethods<T> {
-  set(...values: GetType<T>[]): void;
-  setFrom(values: GetType<T>[]): void;
-  setScalar(value: GetType<T>): void;
-}
-
-export type TupleSchema = Record<string | number | symbol, number>;
-
-export type TupleFull<T, TComponents> = Record<keyof TComponents, GetType<T>>;
-
-export type ReactiveTuple<
-  T extends any[],
-  TComponents extends TupleSchema,
-  TMethods extends Record<string, (...args: any) => any>
-> = Observable<T> & TupleFull<T, TComponents> & TupleMethods<T> & TMethods;
+import { observe } from "./observable";
+import { Tuple } from "./types";
 
 export const createReactiveTuple = <
   T extends any[],
-  TComponents extends TupleSchema,
+  TComponents extends Tuple.Schema,
   TMethods extends Record<string, (...args: any) => any>
 >(options: {
   target: T;
   components: TComponents;
   methods?: TMethods;
-  getter?: (target: T, index: number) => GetType<T>;
+  getter?: (target: T, index: number) => Tuple.GetType<T>;
   setter?: (
     target: T,
     index: number,
-    newValue: GetType<T>,
-    oldValue: GetType<T>
+    newValue: Tuple.GetType<T>,
+    oldValue: Tuple.GetType<T>
   ) => boolean;
 }) => {
   const { target, components } = options;
 
-  const set = (...values: GetType<T>[]) => {
+  const set = (...values: Tuple.GetType<T>[]) => {
     if (values.length === 1) {
       target.fill(values[0]);
       o.$effect();
@@ -53,14 +36,12 @@ export const createReactiveTuple = <
     set(...values);
   };
 
-  const setScalar = (value: GetType<T>) => {
+  const setScalar = (value: Tuple.GetType<T>) => {
     target.fill(value);
     o.$effect();
   };
 
-  const o = createObservable({
-    target,
-
+  const o = observe(target, {
     // Only get fields and options.methods
     get(target, key) {
       if (
@@ -105,8 +86,8 @@ export const createReactiveTuple = <
             options.setter(
               target,
               index,
-              newValue as GetType<T>,
-              oldValue as GetType<T>
+              newValue as Tuple.GetType<T>,
+              oldValue as Tuple.GetType<T>
             );
           } else {
             target[index] = newValue;
@@ -117,9 +98,9 @@ export const createReactiveTuple = <
 
       return false;
     },
-  });
+  }) as Tuple.Reactive<T, TComponents, TMethods>;
 
-  return o as ReactiveTuple<T, TComponents, TMethods>;
+  return o;
 };
 
 export const tuple = createReactiveTuple;
