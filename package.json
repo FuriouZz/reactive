@@ -7,10 +7,10 @@
   "module": "./dist/index.esm.js",
   "description": "",
   "scripts": {
-    "dev": "tsc -p tsconfig.json -w",
+    "dev": "node scripts/dev.mjs --watch",
     "build": "node scripts/build.mjs",
     "bump": "node scripts/bump.mjs",
-    "test": "jest"
+    "test": "node scripts/dev.mjs && jest"
   },
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "license": "Apache Licence 2.0",
@@ -34,5 +34,8 @@
       "import": "./dist/index.esm.js",
       "default": "./dist/index.cjs.js"
     }
+  },
+  "dependencies": {
+    "@types/fs-extra": "^9.0.13"
   }
 }

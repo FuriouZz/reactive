@@ -14,7 +14,7 @@ const build = "npx esbuild --bundle --target=es2020 lib/index.ts";
 spawnSync(`${build} --format=cjs --outfile=dist/index.cjs.js`, OPTIONS);
 spawnSync(`${build} --format=esm --outfile=dist/index.esm.js`, OPTIONS);
 
-spawnSync(`npx tsc --emitDeclarationOnly`, OPTIONS);
+spawnSync(`npx tsc -p tsconfig.json --emitDeclarationOnly --outDir ./temp/types`, OPTIONS);
 const extractorConfigPath = resolve(__dirname, `../api-extractor.json`);
 const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
 const extractorResult = Extractor.invoke(extractorConfig, {

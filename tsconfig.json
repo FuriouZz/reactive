@@ -3,7 +3,6 @@
     "target": "ES6",
     "module": "NodeNext",
     "declaration": true,
-    "declarationDir": "./temp/types",
     "moduleResolution": "NodeNext",
     "lib": [
       "es2020",
