@@ -1,34 +1,43 @@
-import Dispatcher from "./Dispatcher";
-import { reactiveToTarget, targetToReactive } from "./internals";
+import ChangeEmitter from "./ChangeEmitter.js";
+import { listen } from "./helpers.js";
 import {
-  ChangeEvent,
+  INTERNAL_OBSERVABLE_KEY,
+  reactiveToTarget,
+  targetToReactive,
+} from "./internals.js";
+import {
   CreateObservableOptions,
-  KeyChangeEvent,
   ObservableOptions,
   Observable,
-} from "./types";
+  ObservableKeyMap,
+  InternalObservable,
+  ChangeEvent,
+} from "./types.js";
+import { registerWatch } from "./watcher.js";
 
-const CHANGE_EVENT = { type: "change" } as { type: "change" };
-
-export const createObservable = <T extends object>(
-  options?: CreateObservableOptions<T>
-): T => {
-  const change = new Dispatcher<ChangeEvent | KeyChangeEvent>();
-  const target = options?.target || ({} as T);
+const createObservable = <
+  T extends object,
+  KeyMap extends ObservableKeyMap<T> = never
+>(
+  target: T,
+  options?: CreateObservableOptions<T, KeyMap>
+): InternalObservable<T, KeyMap> => {
+  const change = new ChangeEmitter();
   const equals = options?.compare || Object.is;
 
-  const get = (target: T, key: string | symbol, receiver: any) => {
-    if (key === "$change") {
-      return change;
-    } else if (key === "$target") {
-      return target;
-    } else if (key === "$isObservable") {
-      return true;
-    } else if (key === "$effect") {
-      return effect;
-    } else if (key === "$revoke") {
-      return revoke;
+  const getKey = (key: string | symbol) => {
+    if (options?.keyMap && options?.keyMap[key] !== undefined) {
+      return options?.keyMap[key] as string | symbol;
     }
+    return key;
+  };
+
+  const get = (target: T, key: string | symbol, receiver: any) => {
+    if (key === INTERNAL_OBSERVABLE_KEY) {
+      return internalObs;
+    }
+
+    key = getKey(key);
 
     return typeof options?.get === "function"
       ? options.get(target, key, receiver)
@@ -41,71 +50,80 @@ export const createObservable = <T extends object>(
     newValue: any,
     receiver: any
   ) => {
+    key = getKey(key);
+
     const oldValue = Reflect.get(target, key, receiver);
 
     if (typeof options?.set === "function") {
       newValue = options.set(target, key, newValue, oldValue);
     }
 
-    Reflect.set(target, key, newValue, receiver);
+    const isValid = Reflect.set(target, key, newValue, receiver);
 
     if (!equals(newValue, oldValue)) {
       change.dispatch({
-        type: "keyChange",
         key,
         newValue,
         oldValue,
       });
     }
+
+    return isValid;
   };
 
-  const effect = (keys?: (string | symbol)[]) => {
-    const initialMuted = change.muted;
-    change.muted = true;
+  const trigger = (keys?: (string | symbol)[], oldValues?: any) => {
+    const muted = change.muted;
+    change.muted = false;
 
-    keys = keys === undefined ? Object.keys(target) : keys;
+    keys = keys === undefined || keys.length === 0 ? Object.keys(target) : keys;
 
     if (keys.length > 0) {
-      keys.forEach((key) => {
-        const oldValue = Reflect.get(target, key);
-        const newValue = oldValue;
-        if (key in target) {
-          set(target, key, newValue, oldValue);
+      for (const key of keys) {
+        const event: ChangeEvent = { key, newValue: Reflect.get(target, key) }
+
+        if (oldValues && Reflect.has(oldValues, key)) {
+          event.oldValue = Reflect.get(oldValues, key);
         }
-      });
+
+        change.dispatch(event);
+      }
     }
 
-    change.muted = initialMuted;
-    change.dispatch(CHANGE_EVENT);
+    change.muted = muted;
   };
 
-  const revoke = () => o.revoke();
-
-  const o = Proxy.revocable(target, {
-    get(target, key, receiver) {
-      return get(target, key, receiver);
-    },
-
-    set(target, key, newValue, receiver) {
-      set(target, key, newValue, receiver);
-      return true;
-    },
+  const { proxy, revoke } = Proxy.revocable(target, {
+    get,
+    set,
   });
 
-  return o.proxy as T;
+  const internalObs: InternalObservable<T, KeyMap> = {
+    target,
+    proxy: proxy as Observable<T, KeyMap>,
+    revoke,
+    change,
+    trigger: trigger,
+  };
+
+  return internalObs;
 };
 
-export const observe = <T extends object>(
+/**
+ * @public
+ */
+export const observable = <
+  T extends object,
+  KeyMap extends ObservableKeyMap<T>
+>(
   target: T,
-  options?: ObservableOptions<T>
-) => {
+  options?: ObservableOptions<T, KeyMap>
+): Observable<T, KeyMap> => {
   if (targetToReactive.has(target)) {
-    return targetToReactive.get(target) as T;
+    return targetToReactive.get(target)!.proxy as Observable<T, KeyMap>;
   }
 
-  const o = createObservable({
+  const o: InternalObservable<T, KeyMap> = createObservable<T, KeyMap>(target, {
     ...options,
-    target,
     get(target, key, receiver?) {
       const result =
         typeof options?.get === "function"
@@ -114,28 +132,35 @@ export const observe = <T extends object>(
 
       const reactiveResult = targetToReactive.get(result);
 
+      // deep: true
       if (options?.deep && typeof result === "object" && result !== null) {
         if (reactiveResult) return reactiveResult;
-        const child = observe(result) as Observable<object>;
-        child.$change.on((event) => {
-          if (event.type === "change") {
-            o.$change.dispatch(CHANGE_EVENT);
-          } else if (event.type === "keyChange") {
-            o.$change.dispatch({
-              ...event,
-              key: `${String(key)}.${String(event.key)}`,
-            });
-          }
+        const resObservable = observable(result);
+        listen(resObservable).on((event) => {
+          o.change.dispatch({
+            ...event,
+            key: `${String(key)}.${String(event.key)}`,
+          });
         });
-        return child;
+        return resObservable;
+      }
+
+      // watchable: true
+      if (options?.watchable) {
+        registerWatch(o as InternalObservable, key);
       }
 
       return reactiveResult || result;
     },
-  }) as Observable<T>;
+  });
 
-  targetToReactive.set(target, o as any);
-  reactiveToTarget.set(o as any, target);
+  // lazy; true
+  if (options?.lazy) {
+    o.change.muted = true;
+  }
 
-  return o as T;
+  targetToReactive.set(target, o.proxy);
+  reactiveToTarget.set(o.proxy, target);
+
+  return o.proxy;
 };

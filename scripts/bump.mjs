@@ -9,16 +9,22 @@ const Options = { shell: true, stdio: "inherit" };
  * @param {string} version
  */
 function bump(version) {
-  spawnSync("npm install", Options);
+  spawnSync("pnpm install", Options);
   spawnSync(
-    `git commit -am "Bump ${version}" && git tag ${version} && git push --tags && git push`,
+    [
+      `git add package.json`,
+      `git commit -m "Bump ${version}"`,
+      `git tag ${version}`,
+      `git push --tags`,
+      `git push`,
+    ].join(" && "),
     Options
   );
 }
 
 function getPackage(release = "patch", identifier = undefined) {
   const pkg = JSON.parse(readFileSync("package.json", { encoding: "utf-8" }));
-  if (identifier && pkg.version.includes(identifier)) {
+  if (identifier && pkg.version.includes(identifier) && !process.argv.includes("--force")) {
     release = "prerelease";
   }
   const nextVersion = semver.inc(pkg.version, release, undefined, identifier);
@@ -48,8 +54,6 @@ async function main() {
 
   const buf0 = readFileSync("package.json");
   const pkg0 = JSON.parse(buf0.toString("utf-8"));
-  const buf1 = readFileSync("package-lock.json");
-  const pkg1 = JSON.parse(buf1.toString("utf-8"));
 
   try {
     const pkg = getPackage(release, identifier);
@@ -64,8 +68,7 @@ async function main() {
   } catch (e) {
     // Restore version
     writeFileSync(JSON.stringify(pkg0, null, 2), "package.json");
-    writeFileSync(JSON.stringify(pkg1, null, 2), "package-lock.json");
-    spawnSync("npm install", Options);
+    spawnSync("pnpm install", Options);
     console.log(e);
     process.exit(1);
   }

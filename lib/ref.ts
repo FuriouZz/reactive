@@ -1,28 +1,17 @@
-import { isObservable } from "./helpers";
-import { ObservableRef } from "./types";
-import { watchable } from "./watchable";
+import { raw } from "./helpers.js";
+import { Ref } from "./types.js";
+import { observable } from "./observable.js";
 
-export const ref = <T>(value: T) => {
-  return watchable({ value }) as ObservableRef<T>;
+/**
+ * @public
+ */
+export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
+  return observable({ value }, { ...options, watchable: true, });
 };
 
-export const unref = <T>(observable: ObservableRef<T>): T | null => {
-  if (isObservable(observable)) {
-    return observable.$target.value;
-  }
-  return null;
-};
-
-export const lazyRef = <T>(value: T) => {
-  return watchable(
-    { value },
-    {
-      set(target, key, newValue) {
-        if (key === "value") {
-          target[key] = newValue as T;
-        }
-        return false;
-      },
-    }
-  ) as ObservableRef<T>;
+/**
+ * @public
+ */
+export const unref = <T>(observable: Ref<T>): T | undefined => {
+  return raw(observable).value;
 };

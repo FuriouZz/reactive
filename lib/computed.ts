@@ -1,11 +1,14 @@
-import { observe } from "./observable";
-import { ObservableRef } from "./types";
-import { createWatcher } from "./watchable";
+import { internalObservable } from "./internals.js";
+import { observable } from "./observable.js";
+import { createWatcher } from "./watcher.js";
 
+/**
+ * @public
+ */
 export function computed<T>(get: () => T, set?: (value: T) => void) {
   const target = { value: null! as T };
 
-  const o = observe<{ value: T }>(target, {
+  const o = observable<{ value: T }, any>(target, {
     set(_target, _key, newValue) {
       if (typeof set === "function") {
         set(newValue);
@@ -22,12 +25,12 @@ export function computed<T>(get: () => T, set?: (value: T) => void) {
 
     target.value = newValue;
 
-    (o as ObservableRef<T>).$change.dispatch({
-      type: "keyChange",
+    internalObservable(o)?.change.dispatch({
       key: "value",
       newValue,
       oldValue,
     });
+
     return newValue;
   });
 

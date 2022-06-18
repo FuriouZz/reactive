@@ -1,8 +1,6 @@
-export * from "./types";
-export * from "./helpers";
-export * from "./observable";
-export * from "./ref";
-export * from "./tuple";
-export * from "./watchable";
-export * from "./computed";
-export * from "./reactive";
+export { ChangeEvent, Observable, Ref, ObservableOptions, ObservableKeyMap } from "./types.js";
+export * from "./helpers.js";
+export * from "./observable.js";
+export * from "./ref.js";
+export * from "./computed.js";
+export * from "./reactive.js";

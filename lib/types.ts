@@ -1,9 +1,18 @@
-import type Dispatcher from "./Dispatcher";
+import type ChangeEmitter from "./ChangeEmitter.js";
 
-export type Changed = boolean;
+/**
+ * @public
+ */
+export type ObservableKeyMap<T> = Record<string | symbol | number, keyof T>;
 
-export interface CreateObservableOptions<T> {
-  target?: T;
+/**
+ * @internal
+ */
+export interface CreateObservableOptions<
+  T,
+  KeyMap extends ObservableKeyMap<T> = never
+> {
+  keyMap?: KeyMap;
   get?: (target: T, p: string | symbol, receiver?: any) => any;
   set?: (
     target: T,
@@ -11,88 +20,90 @@ export interface CreateObservableOptions<T> {
     newValue: any,
     oldValue: any,
     receiver?: any
-  ) => Changed;
+  ) => any;
   compare?: (newValue: any, oldValue: any) => boolean;
 }
 
-export interface ObservableOptions<T>
-  extends Omit<CreateObservableOptions<T>, "target"> {
+/**
+ * @public
+ */
+ export interface ObservableOptions<T, K extends ObservableKeyMap<T> = never>
+  extends Omit<CreateObservableOptions<T, K>, "target"> {
   deep?: boolean;
+  watchable?: boolean;
+  lazy?: boolean;
 }
 
-export interface KeyChangeEvent {
-  type: "keyChange";
+/**
+ * @public
+ */
+export interface ChangeEvent {
   key: string | symbol;
   newValue: any;
-  oldValue: any;
+  oldValue?: any;
 }
 
-export type ChangeEvent = {
-  type: "change";
-};
-
-export interface BaseObservable<T extends object> {
+/**
+ * @internal
+ */
+ export interface InternalObservable<
+  T extends object = any,
+  KeyMap extends ObservableKeyMap<T> = never
+> {
   /**
-   * change event dispatcher
+   *
    */
-  $change: Dispatcher<ChangeEvent | KeyChangeEvent>;
-
-  /**
-   * Whether the object is observed or not
-   */
-  $isObservable: true;
+  target: T;
 
   /**
-   * Whether the object is watchable or not
+   * Proxy
    */
-  $isWatchable?: true;
-
-  /**
-   * Target observed
-   */
-  $target: T;
-
-  /**
-   * Trigger change
-   */
-  $effect: (keys?: (keyof T)[]) => void;
+  proxy: Observable<T, KeyMap>;
 
   /**
    * Revoke proxy
    */
-  $revoke: () => void;
+  revoke: () => void;
+
+  /**
+   * change event dispatcher
+   */
+  change: ChangeEmitter;
+
+  /**
+   * Trigger change
+   */
+  trigger: (keys?: (string | symbol)[], oldValues?: any) => void;
 }
 
-// export type ObservableDeeply<T extends object> = {
-//   [K in keyof T]: T[K] extends object ? ObservableDeeply<T[K]> : T[K];
-// } & BaseObservable<T>;
+/**
+ * @internal
+ */
+export type BaseObservableKeyMapped<
+  T extends object = any,
+  KeyMap extends ObservableKeyMap<T> = any
+> = {
+  [K in keyof KeyMap]: T[KeyMap[K]];
+};
 
-export type Observable<T extends object> = {
+/**
+ * @public
+ */
+export type Observable<
+  T extends object = any,
+  KeyMap extends ObservableKeyMap<T> = any
+> = {
   [K in keyof T]: T[K];
-} & BaseObservable<T>;
+} & BaseObservableKeyMapped<T, KeyMap>;
 
-export type ObservableRef<T> = Observable<{ value: T }>;
+/**
+ * @public
+ */
+export type Ref<T> = Observable<{ value: T }>;
 
+/**
+ * @internal
+ */
 export interface WatchOptions {
   lazy?: boolean;
-}
-
-export namespace Tuple {
-  export type GetType<T> = T extends (infer U)[] ? U : any;
-
-  export interface Methods<T> {
-    set(...values: GetType<T>[]): void;
-    setFrom(values: GetType<T>[]): void;
-    setScalar(value: GetType<T>): void;
-  }
-
-  export type Schema = Record<string | number | symbol, number>;
-
-  export type Full<T, TComponents> = Record<keyof TComponents, GetType<T>>;
-
-  export type Reactive<
-    T extends any[],
-    TComponents extends Schema,
-    TMethods extends Record<string, (...args: any) => any>
-  > = Observable<T> & Full<T, TComponents> & Methods<T> & TMethods;
 }

@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "target": "ES6",
+    "module": "NodeNext",
     "declaration": true,
-    "declarationDir": "./dist",
-    "moduleResolution": "Node",
+    "declarationDir": "./temp/types",
+    "moduleResolution": "NodeNext",
     "lib": [
-      "es5",
-      "es6",
+      "es2020",
       "dom"
     ],
     "downlevelIteration": true,

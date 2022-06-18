@@ -1,12 +1,17 @@
-import { ObservableOptions } from "./types";
-import { watchable } from "./watchable";
+import { observable } from "./observable.js";
+import { ObservableKeyMap, ObservableOptions } from "./types.js";
 
-export const reactive = <T extends object>(
+/**
+ * @public
+ */
+export const reactive = <T extends object, KeyMap extends ObservableKeyMap<T>>(
   target: T,
-  options: Omit<ObservableOptions<T>, "deep"> = {}
+  options: ObservableOptions<T, KeyMap> = {}
 ) => {
-  return watchable(target, {
+  return observable<T, KeyMap>(target, {
     deep: true,
-    ...options
-  })
-}
+    watchable: true,
+    lazy: false,
+    ...options,
+  });
+};
