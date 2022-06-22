@@ -1,9 +1,4 @@
-import {
-  _InternalObservable,
-  Observable,
-  ObservableMixin,
-  ObservableKeyMap,
-} from "./types";
+import { _InternalObservable, Observable, ObservableMixin } from "./types";
 
 /**
  * @internal
@@ -25,7 +20,6 @@ export const reactiveToTarget = new Map<Observable, any>();
  */
 export const internalObservable = <
   TTarget extends object,
-  TKeyMap extends ObservableKeyMap<TTarget> = never,
   TMixin extends ObservableMixin = never
 >(
   obj: any
@@ -33,7 +27,6 @@ export const internalObservable = <
   if (reactiveToTarget.has(obj)) {
     return Reflect.get(obj, INTERNAL_OBSERVABLE_KEY) as _InternalObservable<
       TTarget,
-      TKeyMap,
       TMixin
     >;
   }

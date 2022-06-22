@@ -1,9 +1,6 @@
 export {
-  BaseObservableKeyMapped,
   ChangeEvent,
-  CreateObservableOptions,
   Observable,
-  ObservableKeyMap,
   ObservableMixin,
   ObservableOptions,
   Ref,

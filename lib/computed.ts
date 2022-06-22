@@ -9,7 +9,7 @@ import { createWatcher } from "./watcher";
 export function computed<T>(get: () => T, set?: (value: T) => void) {
   const target = { value: null! as T };
 
-  const o = observable<{ value: T }, any, any>(target, {
+  const o = observable<{ value: T }, any>(target, {
     set(_target, _key, newValue) {
       if (typeof set === "function") {
         set(newValue);

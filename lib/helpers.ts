@@ -2,7 +2,6 @@ import { internalObservable, reactiveToTarget } from "./internals";
 import {
   ChangeEvent,
   Observable,
-  ObservableKeyMap,
   ObservableMixin,
   WatchOptions,
 } from "./types";
@@ -14,8 +13,8 @@ import { createWatcher } from "./watcher";
  */
 export function isObservable<T = any>(
   obj: T
-): obj is T extends Observable<infer TTarget, infer TKeyMap, infer TMixin>
-  ? Observable<TTarget, TKeyMap, TMixin>
+): obj is T extends Observable<infer TTarget, infer TMixin>
+  ? Observable<TTarget, TMixin>
   : T {
   return reactiveToTarget.has(obj as any);
 }
@@ -26,12 +25,11 @@ export function isObservable<T = any>(
  */
 export const raw = <
   TTarget extends object = any,
-  TKeyMap extends ObservableKeyMap<TTarget> = any,
   TMixin extends ObservableMixin = any
 >(
-  obj: Observable<TTarget, TKeyMap, TMixin>
+  obj: Observable<TTarget, TMixin>
 ): TTarget => {
-  return internalObservable<TTarget, TKeyMap, TMixin>(obj)?.target || obj;
+  return internalObservable<TTarget, TMixin>(obj)?.target || obj;
 };
 
 /**

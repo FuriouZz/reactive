@@ -3,22 +3,18 @@ import type ChangeEmitter from "./ChangeEmitter";
 /**
  * @public
  */
-export type ObservableKeyMap<T> = Record<string | symbol | number, keyof T>;
-
-/**
- * @public
- */
 export type ObservableMixin = Record<string | symbol | number, any>;
 
 /**
  * @public
  */
-export interface CreateObservableOptions<
+export interface ObservableOptions<
   TTarget,
-  TKeyMap extends ObservableKeyMap<TTarget> = never,
   TMixin extends ObservableMixin = never
 > {
-  keyMap?: TKeyMap;
+  lazy?: boolean;
+  watchable?: boolean;
+  deep?: boolean;
   mixin?: TMixin;
   get?: (target: TTarget, p: string | symbol, receiver?: any) => any;
   set?: (
@@ -29,19 +25,6 @@ export interface CreateObservableOptions<
     receiver?: any
   ) => any;
   compare?: (newValue: any, oldValue: any) => boolean;
-}
-
-/**
- * @public
- */
-export interface ObservableOptions<
-  TTarget,
-  TKeyMap extends ObservableKeyMap<TTarget> = never,
-  TMixin extends ObservableMixin = never
-> extends Omit<CreateObservableOptions<TTarget, TKeyMap, TMixin>, "target"> {
-  deep?: boolean;
-  watchable?: boolean;
-  lazy?: boolean;
 }
 
 /**
@@ -58,7 +41,6 @@ export interface ChangeEvent {
  */
 export interface _InternalObservable<
   TTarget extends object = any,
-  TKeyMap extends ObservableKeyMap<TTarget> = never,
   TMixin extends ObservableMixin = never
 > {
   /**
@@ -69,7 +51,7 @@ export interface _InternalObservable<
   /**
    * Proxy
    */
-  proxy: Observable<TTarget, TKeyMap, TMixin>;
+  proxy: Observable<TTarget, TMixin>;
 
   /**
    * Revoke proxy
@@ -90,26 +72,14 @@ export interface _InternalObservable<
 /**
  * @public
  */
-export type BaseObservableKeyMapped<
-  TTarget extends object = any,
-  TKeyMap extends ObservableKeyMap<TTarget> = any,
-  TMixin extends ObservableMixin = any
-> = {
-  [K in keyof TKeyMap]: TTarget[TKeyMap[K]];
-} & {
-  [K in keyof TMixin]: TMixin[K];
-};
-
-/**
- * @public
- */
 export type Observable<
   TTarget extends object = any,
-  TKeyMap extends ObservableKeyMap<TTarget> = any,
   TMixin extends ObservableMixin = any
 > = {
   [K in keyof TTarget]: TTarget[K];
-} & BaseObservableKeyMapped<TTarget, TKeyMap, TMixin>;
+} & {
+  [K in keyof TMixin]: TMixin[K];
+};
 
 /**
  * @public

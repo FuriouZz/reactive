@@ -1,9 +1,5 @@
 import { observable } from "./observable";
-import {
-  ObservableMixin,
-  ObservableKeyMap,
-  ObservableOptions,
-} from "./types";
+import { ObservableMixin, ObservableOptions } from "./types";
 
 /**
  * Create a reactive object
@@ -15,13 +11,12 @@ import {
  */
 export const reactive = <
   TTarget extends object,
-  TKeyMap extends ObservableKeyMap<TTarget>,
   TMixin extends ObservableMixin
 >(
   target: TTarget,
-  options: ObservableOptions<TTarget, TKeyMap, TMixin> = {}
+  options: ObservableOptions<TTarget, TMixin> = {}
 ) => {
-  return observable<TTarget, TKeyMap, TMixin>(target, {
+  return observable<TTarget, TMixin>(target, {
     deep: true,
     watchable: true,
     lazy: false,
