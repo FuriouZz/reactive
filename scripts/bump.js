@@ -1,15 +1,14 @@
 import { readFileSync, writeFileSync } from "fs";
 import semver from "semver";
 import { spawnSync } from "child_process";
-
-const Options = { shell: true, stdio: "inherit" };
+import { SPAWN_OPTIONS } from "./common";
 
 /**
  *
  * @param {string} version
  */
 function bump(version) {
-  spawnSync("pnpm install", Options);
+  spawnSync("pnpm install", SPAWN_OPTIONS);
   spawnSync(
     [
       `git add package.json`,
@@ -18,7 +17,7 @@ function bump(version) {
       `git push --tags`,
       `git push`,
     ].join(" && "),
-    Options
+    SPAWN_OPTIONS
   );
 }
 
@@ -68,7 +67,7 @@ async function main() {
   } catch (e) {
     // Restore version
     writeFileSync(JSON.stringify(pkg0, null, 2), "package.json");
-    spawnSync("pnpm install", Options);
+    spawnSync("pnpm install", SPAWN_OPTIONS);
     console.log(e);
     process.exit(1);
   }

@@ -5,9 +5,9 @@ import {
   watch,
   onChange,
   onKeyChange,
-} from "../dist/index";
+} from "../lib";
 
-test("triggerChange", () => {
+test("triggerChange and extend", () => {
   const createSize = (x = 0, y = 0) => {
     const target = [x, y];
 
@@ -21,29 +21,22 @@ test("triggerChange", () => {
         values.forEach((v, i) => (target[i] = v));
         triggerChange(o, [], oldValues);
       }
+      return o;
     };
 
     const setFrom = (values: number[]) => {
       set(...values);
+      return o;
     };
 
     const changeOrientation = () => {
       const oldValues = [...target];
       target.reverse();
       triggerChange(o, [], oldValues); // Force change for each key
+      return o;
     };
 
-    const methods = {
-      set,
-      setFrom,
-      changeOrientation,
-    };
-
-    Object.entries(methods).forEach(([key, method]) => {
-      Object.defineProperty(target, key, { value: method });
-    });
-
-    const o = reactive(target as typeof target & typeof methods, {
+    const o = reactive(target, {
       keyMap: {
         0: 0,
         1: 1,
@@ -53,6 +46,14 @@ test("triggerChange", () => {
 
         x: 0,
         y: 1,
+      },
+      mixin: {
+        set,
+        setFrom,
+        changeOrientation,
+        get toto() {
+          return "lol";
+        },
       },
     });
 
@@ -79,12 +80,10 @@ test("triggerChange", () => {
 
   sceneSize.width = 350;
   sceneSize.height = 350;
-  sceneSize.set(200);
-  sceneSize.set(800, 600);
+  sceneSize.set(200).set(800, 600);
   sceneSize.x = 1024;
   sceneSize.y = 768;
-  sceneSize.setFrom([1280, 720]);
-  sceneSize.changeOrientation();
+  sceneSize.setFrom([1280, 720]).changeOrientation();
 
   // Change target without triggering change
   raw(sceneSize).reverse();

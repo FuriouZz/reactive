@@ -1,12 +1,12 @@
-import { InternalObservable } from "./types.js";
+import { _InternalObservable } from "./types";
 
-const items: [InternalObservable, string | symbol][] = [];
+const items: [_InternalObservable, string | symbol][] = [];
 let listening = false;
 
 /**
  * @internal
  */
-export function registerWatch(p: InternalObservable, key: string | symbol) {
+export function registerWatch(p: _InternalObservable, key: string | symbol) {
   if (!listening) return;
   const value = items.find(([, k]) => key === k);
   if (!value) items.push([p, key]);
@@ -18,7 +18,7 @@ export function registerWatch(p: InternalObservable, key: string | symbol) {
 export function getWatchKeys<T>(
   cb: () => T,
   caller?: unknown
-): [value: T, keys: [InternalObservable, string | symbol][]] {
+): [value: T, keys: [_InternalObservable, string | symbol][]] {
   items.length = 0;
   listening = true;
   const value = cb.call(caller);
@@ -49,8 +49,6 @@ export const createWatcher = <T>(cb: () => T) => {
         })
       );
     }
-
-    return entries;
   };
 
   watcher.unwatch = () => {

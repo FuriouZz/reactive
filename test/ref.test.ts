@@ -5,7 +5,7 @@ import {
   onKeyChange,
   ref,
   triggerChange,
-} from "../dist/index";
+} from "../lib";
 
 test("ref", (done) => {
   const r = ref(0);

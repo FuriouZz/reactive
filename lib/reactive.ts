@@ -1,14 +1,27 @@
-import { observable } from "./observable.js";
-import { ObservableKeyMap, ObservableOptions } from "./types.js";
+import { observable } from "./observable";
+import {
+  ObservableMixin,
+  ObservableKeyMap,
+  ObservableOptions,
+} from "./types";
 
 /**
+ * Create a reactive object
+ * Same as observable(), but with these defaults
+ * - deep: true
+ * - watchable: true
+ * - lazy: false
  * @public
  */
-export const reactive = <T extends object, KeyMap extends ObservableKeyMap<T>>(
-  target: T,
-  options: ObservableOptions<T, KeyMap> = {}
+export const reactive = <
+  TTarget extends object,
+  TKeyMap extends ObservableKeyMap<TTarget>,
+  TMixin extends ObservableMixin
+>(
+  target: TTarget,
+  options: ObservableOptions<TTarget, TKeyMap, TMixin> = {}
 ) => {
-  return observable<T, KeyMap>(target, {
+  return observable<TTarget, TKeyMap, TMixin>(target, {
     deep: true,
     watchable: true,
     lazy: false,

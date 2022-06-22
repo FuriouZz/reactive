@@ -1,4 +1,4 @@
-import { computed, reactive } from "../dist/index.js";
+import { computed, reactive } from "../lib";
 
 test("computed", () => {
   const o = reactive({ name: "World" });

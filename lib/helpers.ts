@@ -1,27 +1,44 @@
-import { internalObservable, reactiveToTarget } from "./internals.js";
-import { ChangeEvent, Observable, WatchOptions } from "./types.js";
-import { createWatcher } from "./watcher.js";
+import { internalObservable, reactiveToTarget } from "./internals";
+import {
+  ChangeEvent,
+  Observable,
+  ObservableKeyMap,
+  ObservableMixin,
+  WatchOptions,
+} from "./types";
+import { createWatcher } from "./watcher";
 
 /**
+ * Check if the object is reactive
  * @public
  */
-export const isObservable = <T extends object>(
+export function isObservable<T = any>(
   obj: T
-): obj is Observable<T> => {
+): obj is T extends Observable<infer TTarget, infer TKeyMap, infer TMixin>
+  ? Observable<TTarget, TKeyMap, TMixin>
+  : T {
   return reactiveToTarget.has(obj as any);
+}
+
+/**
+ * Get the raw value of an reactive object
+ * @public
+ */
+export const raw = <
+  TTarget extends object = any,
+  TKeyMap extends ObservableKeyMap<TTarget> = any,
+  TMixin extends ObservableMixin = any
+>(
+  obj: Observable<TTarget, TKeyMap, TMixin>
+): TTarget => {
+  return internalObservable<TTarget, TKeyMap, TMixin>(obj)?.target || obj;
 };
 
 /**
+ * Expose the change emitter
  * @public
  */
-export const raw = <T extends object>(obj: Observable<T>): T => {
-  return internalObservable(obj)?.target || obj;
-};
-
-/**
- * @public
- */
-export const listen = <T extends object>(obj: Observable<T>) => {
+export const listen = (obj: any) => {
   const observable = internalObservable(obj);
   if (!observable)
     throw new Error(`[reactive] This object is not an observable`);
@@ -29,17 +46,19 @@ export const listen = <T extends object>(obj: Observable<T>) => {
 };
 
 /**
+ * Remove every change listeners
  * @public
  */
-export const clearListeners = <T extends object>(obj: Observable<T>) => {
+export const clearListeners = (obj: any) => {
   listen(obj).removeListeners();
 };
 
 /**
+ * Listen changes
  * @public
  */
-export const onChange = <T extends object>(
-  obj: Observable<T>,
+export const onChange = (
+  obj: any,
   cb: (event: ChangeEvent) => void,
   caller?: unknown
 ) => {
@@ -47,10 +66,11 @@ export const onChange = <T extends object>(
 };
 
 /**
+ * Listen changes from a list key
  * @public
  */
-export const onKeyChange = <T extends object>(
-  obj: Observable<T>,
+export const onKeyChange = (
+  obj: any,
   key: string | symbol | (string | symbol)[],
   cb: (event: ChangeEvent) => void,
   caller?: unknown
@@ -65,10 +85,11 @@ export const onKeyChange = <T extends object>(
 };
 
 /**
+ * Trigger a change
  * @public
  */
-export const triggerChange = <T extends object>(
-  obj: Observable<T>,
+export const triggerChange = (
+  obj: any,
   key?: string | symbol | (string | symbol)[],
   oldValues?: any
 ) => {
@@ -85,6 +106,7 @@ export const triggerChange = <T extends object>(
 };
 
 /**
+ * Watch changes from reactive objects present in the callback function
  * @public
  */
 export function watch<T = void>(cb: () => T, options: WatchOptions = {}) {

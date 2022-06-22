@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "mainEntryPointFilePath": "<projectFolder>/temp/types/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/build/index.d.ts",
   "bundledPackages": [],
   "compiler": {},
   "apiReport": {
@@ -11,7 +11,8 @@
     "enabled": true
   },
   "dtsRollup": {
-    "enabled": true
+    "enabled": true,
+    "untrimmedFilePath": "<projectFolder>/dist/index.d.ts"
   },
   "tsdocMetadata": {
     "enabled": false

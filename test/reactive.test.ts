@@ -1,4 +1,4 @@
-import { reactive, isObservable, onKeyChange } from "../dist/index";
+import { reactive, isObservable, onKeyChange } from "../lib";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });

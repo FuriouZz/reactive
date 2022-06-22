@@ -1,9 +1,18 @@
-import { ChangeEvent } from "./types.js";
+import { ChangeEvent } from "./types";
 
-type ChangeListener = (event: ChangeEvent) => void;
+/**
+ * @public
+ */
+ export type ChangeListener = (event: ChangeEvent) => void;
 
-type FilterCallback = (event: ChangeEvent) => boolean;
+/**
+ * @public
+ */
+export type FilterCallback = (event: ChangeEvent) => boolean;
 
+/**
+ * @public
+ */
 export default class ChangeEmitter {
   muted = false;
 

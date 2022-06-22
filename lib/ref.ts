@@ -1,8 +1,9 @@
-import { raw } from "./helpers.js";
-import { Ref } from "./types.js";
-import { observable } from "./observable.js";
+import { raw } from "./helpers";
+import { Ref } from "./types";
+import { observable } from "./observable";
 
 /**
+ * Create a boxed value
  * @public
  */
 export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
@@ -10,6 +11,7 @@ export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
 };
 
 /**
+ * Extract value for a box
  * @public
  */
 export const unref = <T>(observable: Ref<T>): T | undefined => {

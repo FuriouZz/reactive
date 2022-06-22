@@ -1,14 +1,15 @@
-import { internalObservable } from "./internals.js";
-import { observable } from "./observable.js";
-import { createWatcher } from "./watcher.js";
+import { internalObservable } from "./internals";
+import { observable } from "./observable";
+import { createWatcher } from "./watcher";
 
 /**
+ * Create a computed object
  * @public
  */
 export function computed<T>(get: () => T, set?: (value: T) => void) {
   const target = { value: null! as T };
 
-  const o = observable<{ value: T }, any>(target, {
+  const o = observable<{ value: T }, any, any>(target, {
     set(_target, _key, newValue) {
       if (typeof set === "function") {
         set(newValue);

@@ -1,6 +1,17 @@
-export { ChangeEvent, Observable, Ref, ObservableOptions, ObservableKeyMap } from "./types.js";
-export * from "./helpers.js";
-export * from "./observable.js";
-export * from "./ref.js";
-export * from "./computed.js";
-export * from "./reactive.js";
+export {
+  BaseObservableKeyMapped,
+  ChangeEvent,
+  CreateObservableOptions,
+  Observable,
+  ObservableKeyMap,
+  ObservableMixin,
+  ObservableOptions,
+  Ref,
+  WatchOptions,
+} from "./types";
+export { ChangeListener, FilterCallback } from "./ChangeEmitter";
+export * from "./helpers";
+export * from "./observable";
+export * from "./ref";
+export * from "./computed";
+export * from "./reactive";

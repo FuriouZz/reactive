@@ -1,4 +1,4 @@
-import { onChange, onKeyChange, reactive, watch } from "../dist/index.js";
+import { onChange, onKeyChange, reactive, watch } from "../lib";
 
 test("onChange", (done) => {
   const o = reactive({ message: "Hello World" });

@@ -1,4 +1,4 @@
-import type ChangeEmitter from "./ChangeEmitter.js";
+import type ChangeEmitter from "./ChangeEmitter";
 
 /**
  * @public
@@ -6,16 +6,23 @@ import type ChangeEmitter from "./ChangeEmitter.js";
 export type ObservableKeyMap<T> = Record<string | symbol | number, keyof T>;
 
 /**
- * @internal
+ * @public
+ */
+export type ObservableMixin = Record<string | symbol | number, any>;
+
+/**
+ * @public
  */
 export interface CreateObservableOptions<
-  T,
-  KeyMap extends ObservableKeyMap<T> = never
+  TTarget,
+  TKeyMap extends ObservableKeyMap<TTarget> = never,
+  TMixin extends ObservableMixin = never
 > {
-  keyMap?: KeyMap;
-  get?: (target: T, p: string | symbol, receiver?: any) => any;
+  keyMap?: TKeyMap;
+  mixin?: TMixin;
+  get?: (target: TTarget, p: string | symbol, receiver?: any) => any;
   set?: (
-    target: T,
+    target: TTarget,
     p: string | symbol,
     newValue: any,
     oldValue: any,
@@ -27,8 +34,11 @@ export interface CreateObservableOptions<
 /**
  * @public
  */
- export interface ObservableOptions<T, K extends ObservableKeyMap<T> = never>
-  extends Omit<CreateObservableOptions<T, K>, "target"> {
+export interface ObservableOptions<
+  TTarget,
+  TKeyMap extends ObservableKeyMap<TTarget> = never,
+  TMixin extends ObservableMixin = never
+> extends Omit<CreateObservableOptions<TTarget, TKeyMap, TMixin>, "target"> {
   deep?: boolean;
   watchable?: boolean;
   lazy?: boolean;
@@ -46,19 +56,20 @@ export interface ChangeEvent {
 /**
  * @internal
  */
- export interface InternalObservable<
-  T extends object = any,
-  KeyMap extends ObservableKeyMap<T> = never
+export interface _InternalObservable<
+  TTarget extends object = any,
+  TKeyMap extends ObservableKeyMap<TTarget> = never,
+  TMixin extends ObservableMixin = never
 > {
   /**
    *
    */
-  target: T;
+  target: TTarget;
 
   /**
    * Proxy
    */
-  proxy: Observable<T, KeyMap>;
+  proxy: Observable<TTarget, TKeyMap, TMixin>;
 
   /**
    * Revoke proxy
@@ -77,24 +88,28 @@ export interface ChangeEvent {
 }
 
 /**
- * @internal
+ * @public
  */
 export type BaseObservableKeyMapped<
-  T extends object = any,
-  KeyMap extends ObservableKeyMap<T> = any
+  TTarget extends object = any,
+  TKeyMap extends ObservableKeyMap<TTarget> = any,
+  TMixin extends ObservableMixin = any
 > = {
-  [K in keyof KeyMap]: T[KeyMap[K]];
+  [K in keyof TKeyMap]: TTarget[TKeyMap[K]];
+} & {
+  [K in keyof TMixin]: TMixin[K];
 };
 
 /**
  * @public
  */
 export type Observable<
-  T extends object = any,
-  KeyMap extends ObservableKeyMap<T> = any
+  TTarget extends object = any,
+  TKeyMap extends ObservableKeyMap<TTarget> = any,
+  TMixin extends ObservableMixin = any
 > = {
-  [K in keyof T]: T[K];
-} & BaseObservableKeyMapped<T, KeyMap>;
+  [K in keyof TTarget]: TTarget[K];
+} & BaseObservableKeyMapped<TTarget, TKeyMap, TMixin>;
 
 /**
  * @public
@@ -102,7 +117,7 @@ export type Observable<
 export type Ref<T> = Observable<{ value: T }>;
 
 /**
- * @internal
+ * @public
  */
 export interface WatchOptions {
   lazy?: boolean;

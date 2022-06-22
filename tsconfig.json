@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "NodeNext",
+    "module": "CommonJS",
     "declaration": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Node",
     "lib": [
       "es2020",
       "dom"
@@ -13,7 +13,7 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./build"
   },
   "include": [
     "./lib/**/*"

@@ -1,27 +1,29 @@
-import ChangeEmitter from "./ChangeEmitter.js";
-import { listen } from "./helpers.js";
+import ChangeEmitter from "./ChangeEmitter";
+import { listen } from "./helpers";
 import {
   INTERNAL_OBSERVABLE_KEY,
   reactiveToTarget,
   targetToReactive,
-} from "./internals.js";
+} from "./internals";
 import {
   CreateObservableOptions,
   ObservableOptions,
   Observable,
   ObservableKeyMap,
-  InternalObservable,
+  _InternalObservable,
   ChangeEvent,
-} from "./types.js";
-import { registerWatch } from "./watcher.js";
+  ObservableMixin,
+} from "./types";
+import { registerWatch } from "./watcher";
 
 const createObservable = <
-  T extends object,
-  KeyMap extends ObservableKeyMap<T> = never
+  TTarget extends object,
+  TKeyMap extends ObservableKeyMap<TTarget> = never,
+  TMixin extends ObservableMixin = never
 >(
-  target: T,
-  options?: CreateObservableOptions<T, KeyMap>
-): InternalObservable<T, KeyMap> => {
+  target: TTarget,
+  options?: CreateObservableOptions<TTarget, TKeyMap, TMixin>
+): _InternalObservable<TTarget, TKeyMap, TMixin> => {
   const change = new ChangeEmitter();
   const equals = options?.compare || Object.is;
 
@@ -32,12 +34,22 @@ const createObservable = <
     return key;
   };
 
-  const get = (target: T, key: string | symbol, receiver: any) => {
+  const getMixinField = (key: string | symbol) => {
+    if (options?.mixin && options?.mixin[key] !== undefined) {
+      return options?.mixin[key];
+    }
+    return undefined;
+  };
+
+  const get = (target: TTarget, key: string | symbol, receiver: any) => {
     if (key === INTERNAL_OBSERVABLE_KEY) {
       return internalObs;
     }
 
     key = getKey(key);
+
+    const field = getMixinField(key);
+    if (field) return field;
 
     return typeof options?.get === "function"
       ? options.get(target, key, receiver)
@@ -45,7 +57,7 @@ const createObservable = <
   };
 
   const set = (
-    target: T,
+    target: TTarget,
     key: string | symbol,
     newValue: any,
     receiver: any
@@ -79,7 +91,7 @@ const createObservable = <
 
     if (keys.length > 0) {
       for (const key of keys) {
-        const event: ChangeEvent = { key, newValue: Reflect.get(target, key) }
+        const event: ChangeEvent = { key, newValue: Reflect.get(target, key) };
 
         if (oldValues && Reflect.has(oldValues, key)) {
           event.oldValue = Reflect.get(oldValues, key);
@@ -97,9 +109,9 @@ const createObservable = <
     set,
   });
 
-  const internalObs: InternalObservable<T, KeyMap> = {
+  const internalObs: _InternalObservable<TTarget, TKeyMap, TMixin> = {
     target,
-    proxy: proxy as Observable<T, KeyMap>,
+    proxy: proxy as Observable<TTarget, TKeyMap, TMixin>,
     revoke,
     change,
     trigger: trigger,
@@ -109,20 +121,30 @@ const createObservable = <
 };
 
 /**
+ * Wrap the target around a proxy
  * @public
  */
 export const observable = <
-  T extends object,
-  KeyMap extends ObservableKeyMap<T>
+  TTarget extends object,
+  TKeyMap extends ObservableKeyMap<TTarget> = never,
+  TMixin extends ObservableMixin = never
 >(
-  target: T,
-  options?: ObservableOptions<T, KeyMap>
-): Observable<T, KeyMap> => {
+  target: TTarget,
+  options?: ObservableOptions<TTarget, TKeyMap, TMixin>
+): Observable<TTarget, TKeyMap, TMixin> => {
   if (targetToReactive.has(target)) {
-    return targetToReactive.get(target)!.proxy as Observable<T, KeyMap>;
+    return targetToReactive.get(target)!.proxy as Observable<
+      TTarget,
+      TKeyMap,
+      TMixin
+    >;
   }
 
-  const o: InternalObservable<T, KeyMap> = createObservable<T, KeyMap>(target, {
+  const o: _InternalObservable<TTarget, TKeyMap, TMixin> = createObservable<
+    TTarget,
+    TKeyMap,
+    TMixin
+  >(target, {
     ...options,
     get(target, key, receiver?) {
       const result =
@@ -147,7 +169,7 @@ export const observable = <
 
       // watchable: true
       if (options?.watchable) {
-        registerWatch(o as InternalObservable, key);
+        registerWatch(o as _InternalObservable, key);
       }
 
       return reactiveResult || result;
