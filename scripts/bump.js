@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import semver from "semver";
 import { spawnSync } from "child_process";
-import { SPAWN_OPTIONS } from "./common";
+import { SPAWN_OPTIONS } from "./common.js";
 
 /**
  *
