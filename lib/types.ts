@@ -23,7 +23,7 @@ export interface ObservableOptions<
     newValue: any,
     oldValue: any,
     receiver?: any
-  ) => any;
+  ) => boolean;
   compare?: (newValue: any, oldValue: any) => boolean;
 }
 

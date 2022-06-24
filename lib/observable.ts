@@ -72,19 +72,18 @@ const createObservable = <
     }
 
     const oldValue = Reflect.get(target, key, receiver);
+    let isValid = false;
 
     if (typeof options?.set === "function") {
-      newValue = options.set(target, key, newValue, oldValue);
+      isValid = options.set(target, key, newValue, oldValue, receiver);
+    } else {
+      isValid = Reflect.set(target, key, newValue, receiver);
     }
 
-    const isValid = Reflect.set(
-      target,
-      key,
-      newValue,
-      target === options?.mixin ? undefined : receiver
-    );
+    // Get new value
+    const value = Reflect.get(target, key, receiver);
 
-    if (!equals(newValue, oldValue)) {
+    if (!equals(value, oldValue)) {
       change.dispatch({
         key,
         newValue,
