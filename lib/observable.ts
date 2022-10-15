@@ -43,11 +43,11 @@ const createObservable = <
         ? options.get(target, key, receiver)
         : Reflect.get(target, key, receiver);
 
-    const reactiveResult = targetToReactive.get(result);
+    const hasReactiveResult = targetToReactive.has(result);
 
     // deep: true
     if (options?.deep && typeof result === "object" && result !== null) {
-      if (reactiveResult) return reactiveResult;
+      if (hasReactiveResult) return targetToReactive.get(result);
       const resObservable = observable(result, options);
       listen(resObservable).on((event) => {
         internalObs.change.dispatch({
@@ -58,7 +58,7 @@ const createObservable = <
       return resObservable;
     }
 
-    return reactiveResult || result;
+    return hasReactiveResult ? targetToReactive.get(result) : result;
   };
 
   const set = (
@@ -106,6 +106,8 @@ const createObservable = <
       for (const key of keys) {
         if (options?.mixin && Reflect.has(options.mixin, key)) {
           _target = options.mixin;
+        } else {
+          _target = target;
         }
 
         const event: ChangeEvent = { key, newValue: Reflect.get(_target, key) };
@@ -131,7 +133,7 @@ const createObservable = <
     proxy: proxy as Observable<TTarget, TMixin>,
     revoke,
     change,
-    trigger: trigger,
+    trigger,
   };
 
   // lazy; true
