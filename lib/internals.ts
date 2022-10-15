@@ -8,12 +8,12 @@ export const INTERNAL_OBSERVABLE_KEY = Symbol("internal observable key");
 /**
  * @internal
  */
-export const targetToReactive = new Map<any, Observable>();
+export const targetToReactive = new WeakMap<any, Observable>();
 
 /**
  * @internal
  */
-export const reactiveToTarget = new Map<Observable, any>();
+export const reactiveToTarget = new WeakMap<Observable, any>();
 
 /**
  * @internal
