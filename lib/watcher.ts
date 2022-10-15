@@ -1,6 +1,6 @@
 import { _InternalObservable } from "./types";
 
-const items: [_InternalObservable, string][] = [];
+const items: [_InternalObservable, string | symbol][] = [];
 let listening = false;
 
 /**
@@ -9,7 +9,7 @@ let listening = false;
 export function registerWatch(p: _InternalObservable, key: string | symbol) {
   if (!listening) return;
   const value = items.find(([, k]) => key === k);
-  if (!value) items.push([p, String(key)]);
+  if (!value) items.push([p, key]);
 }
 
 /**
@@ -18,7 +18,7 @@ export function registerWatch(p: _InternalObservable, key: string | symbol) {
 export function getWatchKeys<T>(
   cb: () => T,
   caller?: unknown
-): [value: T, keys: [_InternalObservable, string][]] {
+): [value: T, keys: [_InternalObservable, string | symbol][]] {
   items.length = 0;
   listening = true;
   const value = cb.call(caller);
@@ -43,8 +43,7 @@ export const createWatcher = <T>(cb: () => T) => {
     for (const [p, key] of keys) {
       unwatches.push(
         p.change.once((event) => {
-          const path = String(event.key).split(".");
-          if (path.includes(key)) {
+          if (event.key === key) {
             watcher();
           }
         })

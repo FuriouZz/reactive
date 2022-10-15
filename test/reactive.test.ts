@@ -1,4 +1,4 @@
-import { reactive, isObservable, onKeyChange, watch } from "../lib";
+import { reactive, isObservable, onKeyChange, watch, onChange, computed } from "../lib";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });
@@ -38,7 +38,7 @@ test("deep", () => {
   // @ts-ignore
   o.obj = null;
 
-  expect(objChange).toHaveBeenCalledTimes(3);
-  expect(objPlopChange).toHaveBeenCalledTimes(1);
+  expect(objChange).toHaveBeenCalledTimes(4);
+  expect(objPlopChange).toHaveBeenCalledTimes(0);
   expect(objPlop2Change).toHaveBeenCalledTimes(5);
 });
