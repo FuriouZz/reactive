@@ -48,7 +48,7 @@ const createObservable = <
     // deep: true
     if (options?.deep && typeof result === "object" && result !== null) {
       if (reactiveResult) return reactiveResult;
-      const resObservable = observable(result);
+      const resObservable = observable(result, options);
       listen(resObservable).on((event) => {
         internalObs.change.dispatch({
           ...event,

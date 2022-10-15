@@ -7,10 +7,11 @@ test("Change field", () => {
 });
 
 test("deep", () => {
-  const o = reactive({ message: "Hello World", count: 0, obj: { plop: true } });
+  const o = reactive({ message: "Hello World", count: 0, obj: { plop: true, plop2: { yolo: "yolo" } } });
 
   expect(isObservable(o)).toBe(true);
   expect(isObservable(o.obj)).toBe(true);
+  expect(isObservable(o.obj.plop2)).toBe(true);
 
   const objChange = jest.fn();
   const objPlopChange = jest.fn();
@@ -25,7 +26,7 @@ test("deep", () => {
 
   // @ts-ignore
   o.obj = null;
-  o.obj = { plop: true };
+  o.obj = { plop: true, plop2: { yolo: "yola" } };
   o.obj.plop = false;
 
   // @ts-ignore

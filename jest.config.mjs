@@ -3,11 +3,13 @@ export default {
   preset: "ts-jest/presets/default-esm",
   testEnvironment: "node",
   rootDir: "./test",
-  globals: {
-    "ts-jest": {
-      useESM: true,
-    },
-  },
   extensionsToTreatAsEsm: [".ts"],
-  transform: {},
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  },
 };
