@@ -1,4 +1,4 @@
-import { reactive, isObservable, onKeyChange, watch, computed } from "../lib";
+import { reactive, isObservable, watch, computed, listen } from "../lib";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });
@@ -21,16 +21,15 @@ test("deep", () => {
   const objPlopChange = jest.fn();
   const objPlop2Change = jest.fn();
 
-  onKeyChange(o, ["obj", "obj.plop"], (event) => {
-    if (event.key === "obj") {
+  listen(o).on((e) => {
+    if (e.key === "obj") {
       objChange();
-    } else if ((event.key = "obj.plop")) {
+    } else if (e.key === "obj.plop") {
       objPlopChange();
     }
   });
 
-  watch(() => {
-    o.obj?.plop2;
+  watch([() => o.obj?.plop2], ([_plop2]) => {
     objPlop2Change();
   });
 
@@ -44,5 +43,5 @@ test("deep", () => {
 
   expect(objChange).toHaveBeenCalledTimes(4);
   expect(objPlopChange).toHaveBeenCalledTimes(0);
-  expect(objPlop2Change).toHaveBeenCalledTimes(5);
+  expect(objPlop2Change).toHaveBeenCalledTimes(3);
 });

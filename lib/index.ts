@@ -4,7 +4,6 @@ export {
   ObservableMixin,
   ObservableOptions,
   Ref,
-  WatchOptions,
 } from "./types";
 export { ChangeListener, FilterCallback } from "./ChangeEmitter";
 export * from "./helpers";

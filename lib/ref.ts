@@ -10,7 +10,7 @@ import { INTERNAL_REF_KEY } from "./internals";
 export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
   return observable(
     { value },
-    { ...options, watchable: true, reference: true }
+    { ...options, watchable: false, reference: true, deep: false }
   );
 };
 
@@ -20,7 +20,8 @@ export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
  */
 export const unref = <T>(observable: Ref<T>): T | undefined => {
   if (isRef(observable)) {
-    return raw(observable).value;
+    const target = raw(observable);
+    return target?.value;
   }
   return undefined;
 };

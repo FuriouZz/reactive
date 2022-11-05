@@ -1,11 +1,4 @@
-import {
-  reactive,
-  triggerChange,
-  raw,
-  watch,
-  onChange,
-  onKeyChange,
-} from "../lib";
+import { reactive, triggerChange, raw, watch, listen, toRef } from "../lib";
 
 const createSize = (x = 0, y = 0) => {
   const target = [x, y];
@@ -83,35 +76,37 @@ const update = (sceneSize: ReturnType<typeof createSize>) => {
   sceneSize.setFrom([1280, 720]).changeOrientation();
 
   // Change target without triggering change
-  raw(sceneSize).reverse();
+  raw(sceneSize)?.reverse();
   // Trigger change but without giving old values
   triggerChange(sceneSize);
 };
 
 test("listen every changes", () => {
   const sceneSize = createSize();
+  const width = toRef(sceneSize, 0);
+  const height = toRef(sceneSize, 1);
 
   const onChangeTrigger = jest.fn();
 
-  onChange(sceneSize, () => {
-    onChangeTrigger(sceneSize[0], sceneSize[1]);
+  watch([width, height], ([x, y]) => {
+    onChangeTrigger(x, y);
   });
 
   update(sceneSize);
 
   expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 350, 0);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 350, 350);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 200, 200);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 200, 350);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 200, 200);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 800, 600);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 800, 200);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(6, 800, 600);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(7, 1024, 600);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(8, 1024, 768);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(9, 1280, 720);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(9, 1280, 768);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(10, 1280, 720);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(11, 720, 1280);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(11, 720, 720);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(12, 720, 1280);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(13, 1280, 720);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(13, 1280, 1280);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(14, 1280, 720);
   expect(onChangeTrigger).toHaveBeenCalledTimes(14);
 });
@@ -121,8 +116,10 @@ test("listen specific key change", () => {
 
   const onKeyChangeTrigger = jest.fn();
 
-  onKeyChange(sceneSize, ["0", "1"], (e) => {
-    onKeyChangeTrigger(e.key, e.oldValue, e.newValue);
+  listen(sceneSize).on((e) => {
+    if (e.key === "0" || e.key === "1") {
+      onKeyChangeTrigger(e.key, e.oldValue, e.newValue);
+    }
   });
 
   update(sceneSize);
@@ -147,8 +144,10 @@ test("listen mixin's key change", () => {
 
   const onKeyChangeTrigger = jest.fn();
 
-  onKeyChange(sceneSize, ["width", "height"], (e) => {
-    onKeyChangeTrigger(e.key, e.oldValue, e.newValue);
+  listen(sceneSize).on((e) => {
+    if (e.key === "width" || e.key === "height") {
+      onKeyChangeTrigger(e.key, e.oldValue, e.newValue);
+    }
   });
 
   update(sceneSize);
@@ -160,17 +159,30 @@ test("listen mixin's key change", () => {
 
 test("watch mixin keys", () => {
   const sceneSize = createSize();
+  const width = toRef(sceneSize, "width");
+  const height = toRef(sceneSize, "height");
 
   const onWatchTrigger = jest.fn();
 
-  watch(() => {
-    onWatchTrigger(sceneSize.width, sceneSize.height);
+  watch([width, height], ([width, height]) => {
+    onWatchTrigger(width, height);
   });
 
   update(sceneSize);
 
-  expect(onWatchTrigger).toHaveBeenNthCalledWith(1, 0, 0);
-  expect(onWatchTrigger).toHaveBeenNthCalledWith(2, 350, 0);
-  expect(onWatchTrigger).toHaveBeenNthCalledWith(3, 350, 350);
-  expect(onWatchTrigger).toHaveBeenCalledTimes(3);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(1, 350, 0);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(2, 350, 350);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(3, 200, 350);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(4, 200, 200);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(5, 800, 200);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(6, 800, 600);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(7, 1024, 600);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(8, 1024, 768);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(9, 1280, 768);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(10, 1280, 720);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(11, 720, 720);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(12, 720, 1280);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(13, 1280, 1280);
+  expect(onWatchTrigger).toHaveBeenNthCalledWith(14, 1280, 720);
+  expect(onWatchTrigger).toHaveBeenCalledTimes(14);
 });

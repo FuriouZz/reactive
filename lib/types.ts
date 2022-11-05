@@ -3,14 +3,14 @@ import type ChangeEmitter from "./ChangeEmitter";
 /**
  * @public
  */
-export type ObservableMixin = Record<string | symbol | number, any>;
+export type ObservableMixin = object; //Record<string | symbol | number, any>;
 
 /**
  * @public
  */
 export interface ObservableOptions<
   TTarget,
-  TMixin extends ObservableMixin = never
+  TMixin extends ObservableMixin = {}
 > {
   lazy?: boolean;
   watchable?: boolean;
@@ -41,9 +41,9 @@ export interface ChangeEvent {
 /**
  * @internal
  */
-export interface _InternalObservable<
-  TTarget extends object = any,
-  TMixin extends ObservableMixin = never
+export interface InternalObservable<
+  TTarget extends object = object,
+  TMixin extends ObservableMixin = {}
 > {
   /**
    *
@@ -69,14 +69,19 @@ export interface _InternalObservable<
    * Trigger change
    */
   trigger: (keys?: (string | symbol)[], oldValues?: any) => void;
+
+  /**
+   * List of observable watched by the root observable
+   */
+  dependencies: Set<Observable>;
 }
 
 /**
  * @public
  */
 export type Observable<
-  TTarget extends object = any,
-  TMixin extends ObservableMixin = any
+  TTarget extends object = object,
+  TMixin extends ObservableMixin = {}
 > = {
   [K in keyof TTarget]: TTarget[K] extends Ref<infer UTarget>
     ? UTarget
@@ -95,11 +100,35 @@ export type Ref<T> = Observable<{ value: T }>;
 /**
  * @public
  */
+export type ToRefs<T> = {
+  [K in keyof T]: Ref<T[K]>;
+};
+
+/**
+ * @public
+ */
 export type Computed<T> = Observable<{ readonly value: T }>;
 
 /**
  * @public
  */
-export interface WatchOptions {
-  lazy?: boolean;
-}
+export type WatchSource = Ref<unknown> | Computed<unknown> | (() => unknown);
+
+/**
+ * @public
+ */
+export type InlineWatchSourceTuple<T extends WatchSource[]> = {
+  [K in keyof T]: T[K] extends Ref<infer U> | Computed<infer U>
+    ? U
+    : T[K] extends () => infer U
+    ? U
+    : unknown;
+};
+
+/**
+ * @public
+ */
+export type WatchCallback<T extends WatchSource[]> = (
+  newValues: InlineWatchSourceTuple<T>,
+  oldValues: InlineWatchSourceTuple<T>
+) => void;

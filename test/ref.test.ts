@@ -7,19 +7,19 @@ import {
   triggerChange,
 } from "../lib";
 
-test("ref", (done) => {
+test("ref", () => {
   const r = ref(0);
 
-  watch(() => {
-    if (r.value === 0) {
-      expect(r.value).toBe(0);
-    } else {
-      expect(r.value).toBe(1);
-      done();
-    }
+  const onChangeTrigger = jest.fn();
+
+  watch([r], ([r]) => {
+    onChangeTrigger(r);
   });
 
   r.value++;
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 1);
+  expect(onChangeTrigger).toHaveBeenCalledTimes(1);
 });
 
 test("lazyRef", () => {

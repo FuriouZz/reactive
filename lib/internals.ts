@@ -1,4 +1,4 @@
-import { _InternalObservable, Observable, ObservableMixin } from "./types";
+import { InternalObservable, Observable, ObservableMixin } from "./types";
 
 /**
  * @internal
@@ -25,15 +25,19 @@ export const reactiveToTarget = new WeakMap<Observable, any>();
  */
 export const internalObservable = <
   TTarget extends object,
-  TMixin extends ObservableMixin = never
+  TMixin extends ObservableMixin = {}
 >(
   obj: any
 ) => {
   if (reactiveToTarget.has(obj)) {
-    return Reflect.get(obj, INTERNAL_OBSERVABLE_KEY) as _InternalObservable<
+    return Reflect.get(obj, INTERNAL_OBSERVABLE_KEY) as InternalObservable<
       TTarget,
       TMixin
     >;
   }
   return undefined;
+};
+
+export const getID = (o: InternalObservable) => {
+  return o.change.id;
 };

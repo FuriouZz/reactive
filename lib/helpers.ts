@@ -1,21 +1,21 @@
+import { computed } from "./computed";
 import { internalObservable, reactiveToTarget } from "./internals";
 import {
   ChangeEvent,
+  Computed,
+  InlineWatchSourceTuple,
   Observable,
   ObservableMixin,
-  WatchOptions,
+  Ref,
+  WatchCallback,
+  WatchSource,
 } from "./types";
-import { createWatcher } from "./watcher";
 
 /**
  * Check if the object is reactive
  * @public
  */
-export function isObservable<T = any>(
-  obj: T
-): obj is T extends Observable<infer TTarget, infer TMixin>
-  ? Observable<TTarget, TMixin>
-  : T {
+export function isObservable<T = any>(obj: T): obj is Observable<any> {
   return reactiveToTarget.has(obj as any);
 }
 
@@ -24,12 +24,13 @@ export function isObservable<T = any>(
  * @public
  */
 export const raw = <
-  TTarget extends object = any,
-  TMixin extends ObservableMixin = any
+  TTarget extends object = object,
+  TMixin extends ObservableMixin = {}
 >(
   obj: Observable<TTarget, TMixin>
-): TTarget => {
-  return internalObservable<TTarget, TMixin>(obj)?.target || obj;
+): TTarget | undefined => {
+  const internal = internalObservable<TTarget, TMixin>(obj);
+  return internal?.target as TTarget | undefined;
 };
 
 /**
@@ -107,12 +108,35 @@ export const triggerChange = (
  * Watch changes from reactive objects present in the callback function
  * @public
  */
-export function watch<T = void>(cb: () => T, options: WatchOptions = {}) {
-  const watcher = createWatcher<T>(cb);
+export function watch<T extends WatchSource[]>(
+  values: [...T],
+  cb: WatchCallback<T>
+) {
+  const unwatches: (() => void)[] = [];
+  const computedValues = values.map((v) =>
+    typeof v === "function" ? computed(v) : v
+  ) as (Ref<unknown> | Computed<unknown>)[];
 
-  if (!options.lazy) {
-    watcher();
+  let newValues = computedValues.map(
+    (v) => v.value
+  ) as InlineWatchSourceTuple<T>;
+
+  for (const value of computedValues) {
+    const unwatch = listen(value).on(() => {
+      const oldValues = newValues;
+      newValues = computedValues.map(
+        (v) => v.value
+      ) as InlineWatchSourceTuple<T>;
+      cb(newValues, oldValues);
+    });
+    unwatches.push(unwatch);
   }
 
-  return watcher;
+  return () => {
+    if (unwatches.length === 0) return;
+    for (const unwatch of unwatches) {
+      unwatch();
+    }
+    unwatches.length = 0;
+  };
 }
