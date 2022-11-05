@@ -8,6 +8,11 @@ export const INTERNAL_OBSERVABLE_KEY = Symbol("internal observable key");
 /**
  * @internal
  */
+export const INTERNAL_REF_KEY = Symbol("ref.value");
+
+/**
+ * @internal
+ */
 export const targetToReactive = new WeakMap<any, Observable>();
 
 /**

@@ -20,6 +20,7 @@ export const reactive = <
     deep: true,
     watchable: true,
     lazy: false,
+    reference: false,
     ...options,
   });
 };

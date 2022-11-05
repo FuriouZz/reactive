@@ -1,15 +1,44 @@
 import { _InternalObservable } from "./types";
 
-const items: [_InternalObservable, string | symbol][] = [];
-let listening = false;
+let CONTEXT_IDX = -1;
+const CONTEXTS: {
+  items: [_InternalObservable, string | symbol][];
+  listening: boolean;
+}[] = [];
+
+function getContext(): typeof CONTEXTS[number] | undefined {
+  return CONTEXTS[CONTEXT_IDX];
+}
+
+function createContext() {
+  CONTEXT_IDX++;
+  CONTEXTS[CONTEXT_IDX] = CONTEXTS[CONTEXT_IDX] || {
+    items: [],
+    listening: false,
+  };
+  const ctx = CONTEXTS[CONTEXT_IDX];
+  ctx.items.length = 0;
+  ctx.listening = true;
+  return ctx;
+}
+
+function dropContext(ctx: typeof CONTEXTS[number]) {
+  CONTEXT_IDX--;
+  ctx.items.length = 0;
+  ctx.listening = false;
+}
 
 /**
  * @internal
  */
-export function registerWatch(p: _InternalObservable, key: string | symbol) {
-  if (!listening) return;
-  const value = items.find(([, k]) => key === k);
-  if (!value) items.push([p, key]);
+export function registerWatch(
+  observable: _InternalObservable,
+  key: string | symbol
+) {
+  const ctx = getContext();
+  if (!ctx?.listening) return;
+  const value = ctx.items.find(([o, k]) => o === observable && key === k);
+  if (!value) ctx.items.push([observable, key]);
 }
 
 /**
@@ -19,12 +48,10 @@ export function getWatchKeys<T>(
   cb: () => T,
   caller?: unknown
 ): [value: T, keys: [_InternalObservable, string | symbol][]] {
-  items.length = 0;
-  listening = true;
+  const ctx = createContext();
   const value = cb.call(caller);
-  listening = false;
-  const keys = items.slice(0);
-  items.length = 0;
+  const keys = ctx.items.slice(0);
+  dropContext(ctx);
   return [value, keys];
 }
 
@@ -36,13 +63,12 @@ export const createWatcher = <T>(cb: () => T) => {
 
   const watcher = () => {
     watcher.unwatch();
-
     const entries = getWatchKeys<T>(cb);
     const [, keys] = entries;
 
     for (const [p, key] of keys) {
       unwatches.push(
-        p.change.once((event) => {
+        p.change.on((event) => {
           if (event.key === key) {
             watcher();
           }

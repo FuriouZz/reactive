@@ -1,4 +1,4 @@
-import { reactive, isObservable, onKeyChange, watch, onChange, computed } from "../lib";
+import { reactive, isObservable, onKeyChange, watch, computed } from "../lib";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });
@@ -7,7 +7,11 @@ test("Change field", () => {
 });
 
 test("deep", () => {
-  const o = reactive({ message: "Hello World", count: 0, obj: { plop: true, plop2: { yolo: "yolo" } } });
+  const o = reactive({
+    message: "Hello World",
+    count: 0,
+    obj: { plop: true, plop2: { yolo: "yolo" } },
+  });
 
   expect(isObservable(o)).toBe(true);
   expect(isObservable(o.obj)).toBe(true);

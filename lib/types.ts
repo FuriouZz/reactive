@@ -14,9 +14,11 @@ export interface ObservableOptions<
 > {
   lazy?: boolean;
   watchable?: boolean;
+  reference?: boolean;
   deep?: boolean;
   mixin?: TMixin;
   get?: (target: TTarget, p: string | symbol, receiver?: any) => any;
+  has?: (target: TTarget, p: string | symbol) => boolean;
   set?: (
     target: TTarget,
     p: string | symbol,
@@ -76,7 +78,11 @@ export type Observable<
   TTarget extends object = any,
   TMixin extends ObservableMixin = any
 > = {
-  [K in keyof TTarget]: TTarget[K];
+  [K in keyof TTarget]: TTarget[K] extends Ref<infer UTarget>
+    ? UTarget
+    : TTarget[K] extends object
+    ? Observable<TTarget[K]>
+    : TTarget[K];
 } & {
   [K in keyof TMixin]: TMixin[K];
 };
@@ -85,6 +91,11 @@ export type Observable<
  * @public
  */
 export type Ref<T> = Observable<{ value: T }>;
+
+/**
+ * @public
+ */
+export type Computed<T> = Observable<{ readonly value: T }>;
 
 /**
  * @public

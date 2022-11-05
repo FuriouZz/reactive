@@ -3,7 +3,7 @@ import { ChangeEvent } from "./types";
 /**
  * @public
  */
- export type ChangeListener = (event: ChangeEvent) => void;
+export type ChangeListener = (event: ChangeEvent) => void;
 
 /**
  * @public
@@ -14,6 +14,9 @@ export type FilterCallback = (event: ChangeEvent) => boolean;
  * @public
  */
 export default class ChangeEmitter {
+  static ID = 0;
+
+  id = ++ChangeEmitter.ID;
   muted = false;
 
   #listeners: {
@@ -29,6 +32,9 @@ export default class ChangeEmitter {
     once: (listener: ChangeListener, caller?: object) => () => void;
     filter: (listener: ChangeListener, filter: FilterCallback) => void;
     removeListeners: () => void;
+    getID: () => number;
+    mute: (muted: boolean) => void;
+    getListenerCount: () => number;
   };
 
   constructor() {
@@ -39,6 +45,9 @@ export default class ChangeEmitter {
       once: this.once.bind(this),
       removeListeners: this.removeListeners.bind(this),
       filter: this.filter.bind(this),
+      getID: () => this.id,
+      mute: this.mute.bind(this),
+      getListenerCount: this.getListenerCount.bind(this),
     };
   }
 
@@ -68,6 +77,14 @@ export default class ChangeEmitter {
   filter(listener: ChangeListener, filter: FilterCallback) {
     const l = this.#listeners.find((l) => l.fn === listener);
     if (l) l.filter = filter;
+  }
+
+  getListenerCount() {
+    return this.#listeners.length;
+  }
+
+  mute(muted: boolean) {
+    this.muted = muted;
   }
 
   dispatch(event: ChangeEvent) {

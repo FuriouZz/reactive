@@ -2,6 +2,7 @@ import ChangeEmitter from "./ChangeEmitter";
 import { listen } from "./helpers";
 import {
   INTERNAL_OBSERVABLE_KEY,
+  INTERNAL_REF_KEY,
   reactiveToTarget,
   targetToReactive,
 } from "./internals";
@@ -23,10 +24,46 @@ const createObservable = <
 ): _InternalObservable<TTarget, TMixin> => {
   const change = new ChangeEmitter();
   const equals = options?.compare || Object.is;
+  const listened = new WeakSet<any>();
+
+  if (options?.reference && !("value" in target)) {
+    throw new Error(
+      "[reactive] A reference must have a value property in its target."
+    );
+  }
+
+  const applyDeep = (result: any, key: string | symbol) => {
+    if (options?.deep && typeof result === "object" && result !== null) {
+      let dep: any;
+      const isReactive = reactiveToTarget.has(result);
+      const hasReactiveResult = targetToReactive.has(result);
+
+      if (isReactive) {
+        dep = result;
+      } else if (hasReactiveResult) {
+        dep = targetToReactive.get(result);
+      } else {
+        dep = observable(result, options);
+      }
+
+      if (!listened.has(result)) {
+        listened.add(result);
+        listen(dep).on((e) => {
+          internalObs.trigger([key], {
+            [key]: { ...result, [e.key]: e.oldValue },
+          });
+        });
+      }
+    }
+  };
 
   const get = (target: TTarget, key: string | symbol, receiver: any) => {
     if (key === INTERNAL_OBSERVABLE_KEY) {
       return internalObs;
+    }
+
+    if (key === INTERNAL_REF_KEY) {
+      return !!options?.reference;
     }
 
     // watchable: true
@@ -38,24 +75,59 @@ const createObservable = <
       return Reflect.get(options.mixin, key);
     }
 
-    const result =
+    let result =
       typeof options?.get === "function"
         ? options.get(target, key, receiver)
         : Reflect.get(target, key, receiver);
 
-    const hasReactiveResult = targetToReactive.has(result);
-
-    // deep: true
-    if (options?.deep && typeof result === "object" && result !== null) {
-      if (hasReactiveResult) return targetToReactive.get(result);
-      const resObservable = observable(result, options);
-      listen(resObservable).on(() => {
-        internalObs.trigger([key]);
-      });
-      return resObservable;
+    // Take value from ref/computed
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      Reflect.get(result, INTERNAL_REF_KEY)
+    ) {
+      result = result.value;
     }
 
-    return hasReactiveResult ? targetToReactive.get(result) : result;
+    // deep: true
+    applyDeep(result, key);
+
+    // Return reactive value
+    if (targetToReactive.has(result)) {
+      return targetToReactive.get(result);
+    }
+
+    // Return default value
+    return result;
+  };
+
+  const has = (target: TTarget, key: string | symbol) => {
+    if (key === INTERNAL_OBSERVABLE_KEY) {
+      return true;
+    }
+
+    if (key === INTERNAL_REF_KEY) {
+      return !!options?.reference;
+    }
+
+    // watchable: true
+    if (options?.watchable) {
+      registerWatch(internalObs as _InternalObservable, key);
+    }
+
+    if (options?.mixin && Reflect.has(options.mixin, key)) {
+      return true;
+    }
+
+    const result =
+      typeof options?.has === "function"
+        ? options.has(target, key)
+        : Reflect.has(target, key);
+
+    // deep: true
+    applyDeep(result, key);
+
+    return result;
   };
 
   const set = (
@@ -68,23 +140,54 @@ const createObservable = <
       return Reflect.set(options.mixin, key, newValue);
     }
 
-    const oldValue = Reflect.get(target, key, receiver);
     let isValid = false;
+    const currentValue = Reflect.get(target, key, receiver);
+
+    // Set .value to ref/computed
+    if (
+      typeof currentValue === "object" &&
+      currentValue !== null &&
+      Reflect.get(currentValue, INTERNAL_REF_KEY)
+    ) {
+      if (equals(currentValue.value, newValue)) return true;
+
+      if (typeof options?.set === "function") {
+        isValid = options.set(
+          currentValue,
+          "value",
+          newValue,
+          currentValue.value,
+          receiver
+        );
+      } else {
+        isValid = Reflect.set(currentValue, "value", newValue, receiver);
+      }
+
+      if (isValid) {
+        change.dispatch({
+          key,
+          newValue,
+          oldValue: currentValue.value,
+        });
+      }
+
+      return isValid;
+    }
+
+    // Classic cases
+    if (equals(currentValue, newValue)) return true;
 
     if (typeof options?.set === "function") {
-      isValid = options.set(target, key, newValue, oldValue, receiver);
+      isValid = options.set(target, key, newValue, currentValue, receiver);
     } else {
       isValid = Reflect.set(target, key, newValue, receiver);
     }
 
-    // Get new value
-    const value = Reflect.get(target, key, receiver);
-
-    if (!equals(value, oldValue)) {
+    if (isValid) {
       change.dispatch({
         key,
         newValue,
-        oldValue,
+        oldValue: currentValue,
       });
     }
 
@@ -108,12 +211,14 @@ const createObservable = <
         }
 
         const event: ChangeEvent = { key, newValue: Reflect.get(_target, key) };
-
         if (oldValues && Reflect.has(oldValues, key)) {
           event.oldValue = Reflect.get(oldValues, key);
+          if (!equals(event.newValue, event.oldValue)) {
+            change.dispatch(event);
+          }
+        } else {
+          change.dispatch(event);
         }
-
-        change.dispatch(event);
       }
     }
 
@@ -123,6 +228,7 @@ const createObservable = <
   const { proxy, revoke } = Proxy.revocable(target, {
     get,
     set,
+    has,
   });
 
   const internalObs: _InternalObservable<TTarget, TMixin> = {
