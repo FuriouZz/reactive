@@ -8,6 +8,7 @@ import {
   ObservableMixin,
   Ref,
   WatchCallback,
+  WatchOptions,
   WatchSource,
 } from "./types";
 
@@ -110,7 +111,8 @@ export const triggerChange = (
  */
 export function watch<T extends WatchSource[]>(
   values: [...T],
-  cb: WatchCallback<T>
+  cb: WatchCallback<T>,
+  options?: WatchOptions
 ) {
   const unwatches: (() => void)[] = [];
   const computedValues = values.map((v) =>
@@ -130,6 +132,10 @@ export function watch<T extends WatchSource[]>(
       cb(newValues, oldValues);
     });
     unwatches.push(unwatch);
+  }
+
+  if (options?.immediate) {
+    cb(newValues, [] as any);
   }
 
   return () => {

@@ -107,7 +107,15 @@ export type ToRefs<T> = {
 /**
  * @public
  */
-export type Computed<T> = Observable<{ readonly value: T }>;
+export type Computed<T, U = T> = Observable<{
+  get value(): T,
+  set value(v: T | U)
+}>;
+
+/**
+ * @public
+ */
+export type Readonly<T> = Observable<{ readonly value: T }>;
 
 /**
  * @public
@@ -132,3 +140,10 @@ export type WatchCallback<T extends WatchSource[]> = (
   newValues: InlineWatchSourceTuple<T>,
   oldValues: InlineWatchSourceTuple<T>
 ) => void;
+
+/**
+ * @public
+ */
+export interface WatchOptions {
+  immediate?: boolean;
+}

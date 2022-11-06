@@ -1,28 +1,37 @@
 import { triggerChange } from "./helpers";
 import { internalObservable } from "./internals";
 import { observable } from "./observable";
-import { Computed, Ref, ToRefs } from "./types";
+import { Computed, Readonly, Ref, ToRefs } from "./types";
 import { createWatcher } from "./watcher";
 
 /**
  * Create a computed object
  * @public
  */
-export function computed<T>(get: () => T): Computed<T>;
-export function computed<T>(get: () => T, set: (value: T) => void): Ref<T>;
-export function computed<T>(get: () => T, set?: (value: T) => void) {
+export function computed<T>(get: () => T): Readonly<T>;
+export function computed<T, U = T>(
+  get: () => T,
+  set: (value: U) => void
+): Computed<T, U>;
+export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
   const target = { value: null! as T };
 
   const o = observable<{ value: T }, any>(target, {
     watchable: true,
     reference: true,
-    set(_target, _key, newValue) {
+    set(target, key, newValue, oldValue, receiver) {
       if (typeof set === "function") {
+        Reflect.set(target, key, newValue, receiver);
         set(newValue);
         return true;
       } else {
         throw new Error(`[reactive] This computed cannot be setted.`);
       }
+    },
+    mixin: {
+      $invalidate() {
+        watcher();
+      },
     },
   });
 

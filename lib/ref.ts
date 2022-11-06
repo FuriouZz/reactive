@@ -10,7 +10,7 @@ import { INTERNAL_REF_KEY } from "./internals";
 export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
   return observable(
     { value },
-    { ...options, watchable: false, reference: true, deep: false }
+    { ...options, watchable: true, reference: true, deep: false }
   );
 };
 
