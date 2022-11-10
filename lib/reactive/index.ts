@@ -1,10 +1,21 @@
 export type {
+  ChangeEvent,
+  ChangeListener,
+  Computed,
+  InlineWatchSource,
+  InlineWatchSourceTuple,
+  MapTuple,
   Observable,
   ObservableMixin,
   ObservableOptions,
+  WatchOptions,
+  WatchCallback,
+  WatchSource,
   Ref,
-  ChangeEvent,
-  ChangeListener,
+  Readonly,
+  ReactiveType,
+  Stream,
+  ToRefs,
 } from "./types.js";
 export {
   watch,
@@ -16,6 +27,7 @@ export {
   raw,
   isObservable,
 } from "./helpers.js";
+export { default as ChangeEmitter } from "./ChangeEmitter.js";
 export { observable } from "./observable.js";
 export { isRefOrComputed as isRef, ref, unref } from "./ref.js";
 export { computed, toRef, toRefs } from "./computed.js";

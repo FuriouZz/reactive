@@ -43,6 +43,9 @@ export interface ChangeEvent {
  */
  export type ChangeListener = (event: ChangeEvent) => void;
 
+/**
+ * @public
+ */
 export type ReactiveType = "reactive" | "reference" | "computed"
 
 /**
@@ -155,6 +158,9 @@ export interface WatchContext {
  */
 export type WatchSource<T = unknown> = Ref<T> | Computed<T> | (() => T);
 
+/**
+ * @public
+ */
 export type InlineWatchSource<T> = T extends Ref<infer U> | Computed<infer U> ? U : T extends () => infer U ? U : T
 
 /**
@@ -180,6 +186,20 @@ export interface WatchOptions {
   immediate?: boolean;
 }
 
+/**
+ * @public
+ */
 export type MapTuple<T, Tuple extends [...any[]]> = {
   [K in keyof Tuple]: T[Tuple[K]];
 } & { length: Tuple["length"] };
+
+
+/**
+ * @public
+ */
+export interface Stream<Source, Result = Source> {
+  pipe<Output>(
+    transform?: (source: Result) => Output
+  ): Stream<Result, Output>;
+  ref(): Ref<Result>
+}

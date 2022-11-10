@@ -32,6 +32,7 @@ function compile(input, output) {
   const typeSource = input.replace("lib/", "build/").replace(".ts", ".d.ts");
   extractorConfig.mainEntryPointFilePath = join(rootDir, typeSource);
   extractorConfig.untrimmedFilePath = join(rootDir, "dist", `${output}.d.ts`);
+  extractorConfig.reportFilePath = join(rootDir, "temp", `${output}.md`);
 
   const extractorResult = Extractor.invoke(extractorConfig, {
     localBuild: true,

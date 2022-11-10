@@ -1,6 +1,6 @@
 import { computedToSignal } from "../conversion.js";
 import { createReadStream } from "../signal/stream.js";
-import { Computed, Ref } from "./types.js";
+import { Computed, Ref, Stream } from "./types.js";
 import { ReadStream } from "../signal/types.js";
 import { createEffect } from "../signal/signal.js";
 import { ref } from "./ref.js";
@@ -13,7 +13,9 @@ export const stream = <T>(c: Computed<T> | Ref<T>) => {
 
   const readable = createReadStream(read);
 
-  const createPipe = <Source, Result>(stream: ReadStream<Source, Result>) => {
+  const createPipe = <Source, Result>(
+    stream: ReadStream<Source, Result>
+  ): Stream<Source, Result> => {
     let box: Ref<Result> | undefined = undefined;
 
     const getOrCreateRef = () => {
