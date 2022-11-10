@@ -5,7 +5,7 @@ import {
   onKeyChange,
   ref,
   triggerChange,
-} from "../lib";
+} from "../lib/reactive";
 
 test("ref", () => {
   const r = ref(0);

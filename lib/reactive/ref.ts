@@ -1,7 +1,7 @@
-import { raw } from "./helpers";
-import { Ref } from "./types";
-import { observable } from "./observable";
-import { INTERNAL_REF_KEY } from "./internals";
+import { raw } from "./helpers.js";
+import { Ref } from "./types.js";
+import { observable } from "./observable.js";
+import { INTERNAL_REF_KEY } from "./internals.js";
 
 /**
  * Create a boxed value

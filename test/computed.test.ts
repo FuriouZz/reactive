@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from "../lib";
+import { computed, reactive, watch } from "../lib/reactive";
 
 test("computed", () => {
   const o = reactive({ name: "World" });

@@ -1,4 +1,4 @@
-import { reactive, isObservable, watch, computed, listen } from "../lib";
+import { reactive, isObservable, watch, listen } from "../lib/reactive";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });

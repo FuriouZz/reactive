@@ -1,15 +1,50 @@
 import { Extractor, ExtractorConfig } from "@microsoft/api-extractor";
 import { spawnSync } from "child_process";
 import { writeFileSync } from "fs";
-import { resolve } from "path";
+import { basename, dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 import { ROOT_DIR, SPAWN_OPTIONS } from "./common.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, "../");
+
+/**
+ *
+ * @param {string} input
+ * @param {string} output
+ */
+function compile(input, output) {
+  const build = "npx esbuild --bundle --target=es6 " + input;
+  spawnSync(
+    `${build} --format=cjs --outfile=dist/cjs/${output}.js`,
+    SPAWN_OPTIONS
+  );
+  spawnSync(
+    `${build} --format=esm --outfile=dist/esm/${output}.js`,
+    SPAWN_OPTIONS
+  );
+
+  const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
+  const extractorConfig =
+    ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
+
+  const typeSource = input.replace("lib/", "build/").replace(".ts", ".d.ts");
+  extractorConfig.mainEntryPointFilePath = join(rootDir, typeSource);
+  extractorConfig.untrimmedFilePath = join(rootDir, "dist", `${output}.d.ts`);
+
+  const extractorResult = Extractor.invoke(extractorConfig, {
+    localBuild: true,
+    showVerboseMessages: true,
+  });
+}
 
 async function main() {
   await import("./dev.js");
 
-  const build = "npx esbuild --bundle --target=es6 lib/index.ts";
-  spawnSync(`${build} --format=cjs --outfile=dist/cjs/index.js`, SPAWN_OPTIONS);
-  spawnSync(`${build} --format=esm --outfile=dist/esm/index.js`, SPAWN_OPTIONS);
+  compile("lib/index.ts", "index");
+  compile("lib/reactive/index.ts", "reactive");
+  compile("lib/signal/index.ts", "signal");
 
   writeFileSync(
     "./dist/cjs/package.json",
@@ -21,13 +56,16 @@ async function main() {
     JSON.stringify({ type: "module" }, null, 2)
   );
 
-  const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
-  const extractorConfig =
-    ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
-  const extractorResult = Extractor.invoke(extractorConfig, {
-    localBuild: true,
-    showVerboseMessages: true,
-  });
+  // const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
+  // const extractorConfig =
+  //   ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
+
+  // console.log(extractorConfig.mainEntryPointFilePath);
+
+  // const extractorResult = Extractor.invoke(extractorConfig, {
+  //   localBuild: true,
+  //   showVerboseMessages: true,
+  // });
 }
 
 main();

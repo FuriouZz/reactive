@@ -1,4 +1,4 @@
-import { computed, reactive, toRef, watch } from "../lib";
+import { computed, reactive, toRef, watch } from "../lib/reactive";
 
 test("watch computed and toRef", () => {
   const position = reactive({ x: 0, enabled: false, y: 0 });

@@ -1,5 +1,5 @@
-import { computed } from "./computed";
-import { internalObservable, reactiveToTarget } from "./internals";
+import { computed } from "./computed.js";
+import { internalObservable, reactiveToTarget } from "./internals.js";
 import {
   ChangeEvent,
   Computed,
@@ -10,7 +10,7 @@ import {
   WatchCallback,
   WatchOptions,
   WatchSource,
-} from "./types";
+} from "./types.js";
 
 /**
  * Check if the object is reactive

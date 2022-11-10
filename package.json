@@ -24,6 +24,26 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/cjs/index.js"
       }
+    },
+    "./reactive": {
+      "import": {
+        "types": "./dist/reactive.d.ts",
+        "default": "./dist/esm/reactive.js"
+      },
+      "require": {
+        "types": "./dist/reactive.d.ts",
+        "default": "./dist/cjs/reactive.js"
+      }
+    },
+    "./signal": {
+      "import": {
+        "types": "./dist/signal.d.ts",
+        "default": "./dist/esm/signal.js"
+      },
+      "require": {
+        "types": "./dist/signal.d.ts",
+        "default": "./dist/cjs/signal.js"
+      }
     }
   },
   "files": [
@@ -33,7 +53,8 @@
   "keywords": [
     "observer",
     "reactive",
-    "reactivity"
+    "reactivity",
+    "signal"
   ],
   "license": "Apache Licence 2.0",
   "main": "./dist/cjs/index.js",

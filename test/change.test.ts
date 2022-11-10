@@ -1,4 +1,4 @@
-import { onChange, onKeyChange, reactive, toRef, toRefs, watch } from "../lib";
+import { onChange, onKeyChange, reactive, toRef, watch } from "../lib/reactive";
 
 test("onChange", (done) => {
   const o = reactive({ message: "Hello World" });

@@ -1,4 +1,4 @@
-import { InternalObservable, Observable, ObservableMixin } from "./types";
+import { InternalObservable, Observable, ObservableMixin } from "./types.js";
 
 /**
  * @internal

@@ -1,5 +1,5 @@
-import { observable } from "./observable";
-import { ObservableMixin, ObservableOptions } from "./types";
+import { observable } from "./observable.js";
+import { ObservableMixin, ObservableOptions } from "./types.js";
 
 /**
  * Create a reactive object

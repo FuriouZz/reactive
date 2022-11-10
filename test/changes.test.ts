@@ -1,4 +1,11 @@
-import { reactive, triggerChange, raw, watch, listen, toRef } from "../lib";
+import {
+  reactive,
+  triggerChange,
+  raw,
+  watch,
+  listen,
+  toRef,
+} from "../lib/reactive";
 
 const createSize = (x = 0, y = 0) => {
   const target = [x, y];

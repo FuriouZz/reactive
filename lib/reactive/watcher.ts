@@ -1,5 +1,5 @@
-import { internalObservable } from "./internals";
-import { InternalObservable } from "./types";
+import { internalObservable } from "./internals.js";
+import { InternalObservable } from "./types.js";
 
 type Root = {
   observable: InternalObservable;

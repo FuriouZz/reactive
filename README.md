@@ -29,8 +29,7 @@ size.width = 150; // log: "75px"
 const size = reactive({ width: 800, height:: 600 }, {
   mixin: {
     swap() {
-      const width = size.width;
-      size.width = size.height;
+      const       size.width = size.height;
       size.height = width;
     },
   },

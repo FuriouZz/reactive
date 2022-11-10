@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from "../lib";
+import { computed, reactive, watch } from "../lib/reactive";
 
 test("reactive inside reactive", () => {
   const position = reactive({ x: 0, y: 0 });

@@ -1,19 +1,19 @@
-import ChangeEmitter from "./ChangeEmitter";
-import { listen } from "./helpers";
+import ChangeEmitter from "./ChangeEmitter.js";
+import { listen } from "./helpers.js";
 import {
   INTERNAL_OBSERVABLE_KEY,
   INTERNAL_REF_KEY,
   reactiveToTarget,
   targetToReactive,
-} from "./internals";
+} from "./internals.js";
 import {
   ObservableOptions,
   Observable,
   InternalObservable,
   ChangeEvent,
   ObservableMixin,
-} from "./types";
-import { registerWatch } from "./watcher";
+} from "./types.js";
+import { registerWatch } from "./watcher.js";
 
 const createObservable = <
   TTarget extends object,

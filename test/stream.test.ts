@@ -1,4 +1,4 @@
-import { stream, reactive, toRef, watch } from "../lib";
+import { stream, reactive, toRef, watch } from "../lib/reactive";
 
 test("pipe", () => {
   const onChangeTrigger = jest.fn();

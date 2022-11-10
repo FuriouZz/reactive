@@ -1,4 +1,4 @@
-import { ChangeEvent } from "./types";
+import { ChangeEvent } from "./types.js";
 
 /**
  * @public

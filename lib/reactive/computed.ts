@@ -1,18 +1,26 @@
-import { triggerChange } from "./helpers";
-import { internalObservable } from "./internals";
-import { observable } from "./observable";
-import { Computed, Readonly, Ref, ToRefs } from "./types";
-import { createWatcher } from "./watcher";
+import { triggerChange } from "./helpers.js";
+import { internalObservable } from "./internals.js";
+import { observable } from "./observable.js";
+import { Computed, Readonly, ToRefs } from "./types.js";
+import { createWatcher } from "./watcher.js";
+
+/**
+ * @public
+ */
+export function computed<T>(get: () => T): Readonly<T>;
+
+/**
+ * @public
+ */
+export function computed<T, U = T>(
+  get: () => T,
+  set: (value: U) => void
+): Computed<T, U>;
 
 /**
  * Create a computed object
  * @public
  */
-export function computed<T>(get: () => T): Readonly<T>;
-export function computed<T, U = T>(
-  get: () => T,
-  set: (value: U) => void
-): Computed<T, U>;
 export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
   const target = { value: null! as T };
 
@@ -62,6 +70,9 @@ export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
   return o;
 }
 
+/**
+ * @public
+ */
 export const toRef = <T extends object, K extends keyof T>(
   object: T,
   key: K
@@ -72,6 +83,9 @@ export const toRef = <T extends object, K extends keyof T>(
   );
 };
 
+/**
+ * @public
+ */
 export const toRefs = <T extends object>(object: T) => {
   const ret: Record<any, any> = {};
   for (const key in object) {

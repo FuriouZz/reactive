@@ -1,4 +1,4 @@
-import type ChangeEmitter from "./ChangeEmitter";
+import type ChangeEmitter from "./ChangeEmitter.js";
 
 /**
  * @public

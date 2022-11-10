@@ -1,8 +1,11 @@
-import { computed } from "./computed";
-import { watch } from "./helpers";
-import { internalObservable } from "./internals";
-import { Computed, InlineWatchSourceTuple, WatchSource } from "./types";
+import { computed } from "./computed.js";
+import { watch } from "./helpers.js";
+import { internalObservable } from "./internals.js";
+import { Computed, InlineWatchSourceTuple, WatchSource } from "./types.js";
 
+/**
+ * @public
+ */
 export default class Stream<Source, Result = Source> {
   #transform?: (value: Source) => Result;
   #pipes: Stream<Result, any>[];
@@ -48,6 +51,9 @@ export default class Stream<Source, Result = Source> {
   }
 }
 
+/**
+ * @public
+ */
 export const stream = <T extends WatchSource[]>(values: [...T]) => {
   const stream = new Stream<InlineWatchSourceTuple<T>>();
 
