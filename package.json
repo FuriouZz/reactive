@@ -1,7 +1,7 @@
 {
   "name": "@furiouzz/reactive",
   "description": "",
-  "version": "0.0.7-beta.5",
+  "version": "0.1.0",
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.33.0",
