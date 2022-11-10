@@ -20,4 +20,4 @@ export { observable } from "./observable.js";
 export { isRef, ref, unref } from "./ref.js";
 export { computed, toRef, toRefs } from "./computed.js";
 export { reactive } from "./reactive.js";
-export { default as Stream, stream } from "./Stream.js";
+export { stream } from "./stream.js";

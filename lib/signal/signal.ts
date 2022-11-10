@@ -29,7 +29,7 @@ export function createSignal<T>(defaultValue: T) {
     }
   };
 
-  return [read, write] as const;
+  return [read, write] as [() => T, (value: T) => void];
 }
 
 /**

@@ -67,7 +67,7 @@ export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
 
   watcher();
 
-  return o;
+  return o as Computed<T, U>;
 }
 
 /**

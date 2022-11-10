@@ -4,15 +4,9 @@ export type Subscriber = () => void;
 
 export interface Stream<Source, Result = Source> {
   pipe<Output>(
-    transform: (source: Result) => Output
+    transform?: (source: Result) => Output
   ): ReadStream<Result, Output>;
 }
-
-export type WithPipe<T, Source, Result = Source> = T & {
-  pipe<Output>(
-    transform: (source: Result) => Output
-  ): ReadStream<Result, Output>;
-};
 
 export interface ReadStream<Source, Result> extends Stream<Source, Result> {
   read(): Result;

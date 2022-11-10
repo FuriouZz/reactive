@@ -6,16 +6,16 @@ test("pipe", () => {
   const size = reactive({ width: 100, height: 100 });
   const width = toRef(size, "width");
 
-  const value = stream([width])
-    .pipe(([width]) => [width * 0.5])
-    .pipe(([width]) => String(width))
+  const result = stream(width)
+    .pipe((width) => width * 0.5)
+    .pipe((width) => String(width))
     .pipe((width) => width + "px")
     .ref();
 
   watch(
-    [value],
-    ([v]) => {
-      onChangeTrigger(v);
+    [result],
+    ([result]) => {
+      onChangeTrigger(result);
     },
     { immediate: true }
   );

@@ -110,17 +110,21 @@ export type ToRefs<T> = {
 export type Computed<T, U = T> = Observable<{
   get value(): T,
   set value(v: T | U)
+}, {
+  $invalidate(): void
 }>;
 
 /**
  * @public
  */
-export type Readonly<T> = Observable<{ readonly value: T }>;
+export type Readonly<T> = Observable<{ readonly value: T }, {
+  $invalidate(): void
+}>;
 
 /**
  * @public
  */
-export type WatchSource = Ref<unknown> | Computed<unknown> | (() => unknown);
+export type WatchSource<T = unknown> = Ref<T> | Computed<T> | (() => T);
 
 /**
  * @public
