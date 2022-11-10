@@ -1,39 +1,28 @@
-import { InternalObservable, Observable, ObservableMixin } from "./types.js";
+import { isObservable } from "./helpers.js";
+import { InternalObservable, Observable } from "./types.js";
 
 /**
  * @internal
  */
-export const INTERNAL_OBSERVABLE_KEY = Symbol("internal observable key");
+export const $Target = Symbol("$target");
 
 /**
  * @internal
  */
-export const INTERNAL_REF_KEY = Symbol("ref.value");
-
-/**
- * @internal
- */
-export const targetToReactive = new WeakMap<any, Observable>();
-
-/**
- * @internal
- */
-export const reactiveToTarget = new WeakMap<Observable, any>();
+export const targetToReactive = new WeakMap<any, InternalObservable>();
 
 /**
  * @internal
  */
 export const internalObservable = <
   TTarget extends object,
-  TMixin extends ObservableMixin = {}
+  TMixin extends object
 >(
-  obj: any
+  obj: Observable<TTarget, TMixin>
 ) => {
-  if (reactiveToTarget.has(obj)) {
-    return Reflect.get(obj, INTERNAL_OBSERVABLE_KEY) as InternalObservable<
-      TTarget,
-      TMixin
-    >;
+  if (isObservable(obj)) {
+    const target = Reflect.get(obj, $Target);
+    return targetToReactive.get(target) as InternalObservable<TTarget, TMixin>;
   }
   return undefined;
 };

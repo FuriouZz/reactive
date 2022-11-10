@@ -1,6 +1,6 @@
-import { computed, reactive, watch } from "../lib/reactive";
+import { computed, reactive, ref, watchKeys } from "../lib/reactive";
 
-test("reactive inside reactive", () => {
+test("nesting reactive.reactive", () => {
   const position = reactive({ x: 0, y: 0 });
   const object = reactive({
     position,
@@ -9,21 +9,45 @@ test("reactive inside reactive", () => {
 
   const onChange = jest.fn();
 
-  watch([() => object.position.x, () => object.position.y], ([x, y]) => {
-    onChange(x, y);
+  watchKeys(object.position, ["x", "y"], (v) => {
+    onChange(v);
   });
 
   position.x = 10;
   position.y = 10;
   object.position.x = 20;
 
-  expect(onChange).toHaveBeenNthCalledWith(1, 10, 0);
-  expect(onChange).toHaveBeenNthCalledWith(2, 10, 10);
-  expect(onChange).toHaveBeenNthCalledWith(3, 20, 10);
+  expect(onChange).toHaveBeenNthCalledWith(1, [10, 0]);
+  expect(onChange).toHaveBeenNthCalledWith(2, [10, 10]);
+  expect(onChange).toHaveBeenNthCalledWith(3, [20, 10]);
   expect(onChange).toBeCalledTimes(3);
 });
 
-test.only("reactive inside computed inside reactive", () => {
+test("nesting reactive.ref.reactive", () => {
+  const x = ref(0);
+  const y = ref(0);
+  const object = reactive({
+    position: { x, y },
+    size: { width: 0, height: 0 },
+  });
+
+  const onChange = jest.fn();
+
+  watchKeys(object.position, ["x", "y"], (v) => {
+    onChange(v);
+  });
+
+  x.value = 10;
+  y.value = 10;
+  object.position.x = 20;
+
+  expect(onChange).toHaveBeenNthCalledWith(1, [10, 0]);
+  expect(onChange).toHaveBeenNthCalledWith(2, [10, 10]);
+  expect(onChange).toHaveBeenNthCalledWith(3, [20, 10]);
+  expect(onChange).toBeCalledTimes(3);
+});
+
+test("nesting reactive.computed.reactive", () => {
   const position = reactive({ x: 0, y: 0 });
   const object = reactive({
     position: {
@@ -38,16 +62,16 @@ test.only("reactive inside computed inside reactive", () => {
 
   const onChange = jest.fn();
 
-  watch([() => object.position.x, () => object.position.y], ([x, y]) => {
-    onChange(x, y);
+  watchKeys(object.position, ["x", "y"], (v) => {
+    onChange(v);
   });
 
   position.x = 10;
   position.y = 10;
   object.position.x = 20;
 
-  expect(onChange).toHaveBeenNthCalledWith(1, 10, 0);
-  expect(onChange).toHaveBeenNthCalledWith(2, 10, 10);
-  expect(onChange).toHaveBeenNthCalledWith(3, 20, 10);
+  expect(onChange).toHaveBeenNthCalledWith(1, [10, 0]);
+  expect(onChange).toHaveBeenNthCalledWith(2, [10, 10]);
+  expect(onChange).toHaveBeenNthCalledWith(3, [20, 10]);
   expect(onChange).toBeCalledTimes(3);
 });

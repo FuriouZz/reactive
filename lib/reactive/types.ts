@@ -14,7 +14,7 @@ export interface ObservableOptions<
 > {
   lazy?: boolean;
   watchable?: boolean;
-  reference?: boolean;
+  type?: ReactiveType;
   deep?: boolean;
   mixin?: TMixin;
   get?: (target: TTarget, p: string | symbol, receiver?: any) => any;
@@ -39,6 +39,13 @@ export interface ChangeEvent {
 }
 
 /**
+ * @public
+ */
+ export type ChangeListener = (event: ChangeEvent) => void;
+
+export type ReactiveType = "reactive" | "reference" | "computed"
+
+/**
  * @internal
  */
 export interface InternalObservable<
@@ -49,6 +56,11 @@ export interface InternalObservable<
    *
    */
   target: TTarget;
+
+  /**
+   *
+   */
+  type: ReactiveType;
 
   /**
    * Proxy
@@ -68,12 +80,12 @@ export interface InternalObservable<
   /**
    * Trigger change
    */
-  trigger: (keys?: (string | symbol)[], oldValues?: any) => void;
+  trigger: <K extends keyof TTarget>(key?: K | "$target", newValue?: TTarget[K], oldValue?: TTarget[K]) => void;
 
   /**
    * List of observable watched by the root observable
    */
-  dependencies: Set<Observable>;
+  dependencies: Set<InternalObservable>;
 }
 
 /**
@@ -124,17 +136,32 @@ export type Readonly<T> = Observable<{ readonly value: T }, {
 /**
  * @public
  */
+export interface WatchDependency {
+  observable: InternalObservable;
+  deps: InternalObservable[];
+}
+
+/**
+ * @public
+ */
+export interface WatchContext {
+  id: number;
+  listening: boolean;
+  dependencies: WatchDependency[];
+}
+
+/**
+ * @public
+ */
 export type WatchSource<T = unknown> = Ref<T> | Computed<T> | (() => T);
+
+export type InlineWatchSource<T> = T extends Ref<infer U> | Computed<infer U> ? U : T extends () => infer U ? U : T
 
 /**
  * @public
  */
 export type InlineWatchSourceTuple<T extends WatchSource[]> = {
-  [K in keyof T]: T[K] extends Ref<infer U> | Computed<infer U>
-    ? U
-    : T[K] extends () => infer U
-    ? U
-    : unknown;
+  [K in keyof T]: InlineWatchSource<T[K]>;
 };
 
 /**
@@ -149,5 +176,10 @@ export type WatchCallback<T extends WatchSource[]> = (
  * @public
  */
 export interface WatchOptions {
+  caller?: any;
   immediate?: boolean;
 }
+
+export type MapTuple<T, Tuple extends [...any[]]> = {
+  [K in keyof Tuple]: T[Tuple[K]];
+} & { length: Tuple["length"] };

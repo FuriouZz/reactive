@@ -1,4 +1,111 @@
-import { computed, reactive, toRef, watch } from "../lib/reactive";
+import {
+  computed,
+  watch,
+  watchKeys,
+  reactive,
+  toRef,
+  watchSources,
+  watchEffect,
+} from "../lib/reactive";
+
+test("watch", () => {
+  const o = reactive({ message: "Hello World" });
+  const onChangeTrigger = jest.fn();
+
+  watch(o, () => {
+    onChangeTrigger(o.message);
+  });
+
+  o.message = "Hello John";
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "Hello John");
+  expect(onChangeTrigger).toHaveBeenCalledTimes(1);
+});
+
+test("watch event", () => {
+  const o = reactive({ message: "Hello World", count: 0 });
+  const onChangeTrigger = jest.fn();
+
+  watch(o, (_, e) => {
+    onChangeTrigger(e.key);
+  });
+
+  o.message = "Hello John";
+  o.count++;
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "message");
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, "count");
+  expect(onChangeTrigger).toHaveBeenCalledTimes(2);
+});
+
+test("watchSources", () => {
+  const onChangeTrigger = jest.fn();
+  const o = reactive({ message: "Hello World" });
+
+  watchSources([() => o.message], ([message]) => {
+    onChangeTrigger(message);
+  });
+
+  o.message = "Hello John";
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "Hello John");
+  expect(onChangeTrigger).toHaveBeenCalledTimes(1);
+});
+
+test("watchEffect", () => {
+  const onChangeTrigger = jest.fn();
+  const o = reactive({ message: "Hello World" });
+
+  watchEffect(() => {
+    onChangeTrigger(o.message);
+  });
+
+  o.message = "Hello John";
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, "Hello John");
+  expect(onChangeTrigger).toHaveBeenCalledTimes(2);
+});
+
+test("watchKeys", () => {
+  const onChangeTrigger = jest.fn();
+  const o = reactive({ message: "Hello World", count: 0 });
+
+  watchKeys(o, ["message"], ([message]) => {
+    onChangeTrigger(message);
+  });
+
+  o.message = "Hello John";
+
+  watchKeys(o, ["count"], ([count]) => {
+    onChangeTrigger(count);
+  });
+
+  o.count++;
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "Hello John");
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1);
+  expect(onChangeTrigger).toHaveBeenCalledTimes(2);
+});
+
+test("watch with filter", () => {
+  const onChangeTrigger = jest.fn();
+  const o = reactive({ message: "Hello World", count: 0 });
+
+  watch(
+    o,
+    (_, e) => {
+      onChangeTrigger(e.newValue);
+    },
+    { filter: ["message"] }
+  );
+
+  o.message = "Hello John";
+  o.count++;
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, "Hello John");
+  expect(onChangeTrigger).toHaveBeenCalledTimes(1);
+});
 
 test("watch computed and toRef", () => {
   const position = reactive({ x: 0, enabled: false, y: 0 });
@@ -7,7 +114,7 @@ test("watch computed and toRef", () => {
 
   const onChangeTrigger = jest.fn();
 
-  watch([x, () => position.y, enabled], ([x, y, enabled]) => {
+  watchSources([x, () => position.y, enabled], ([x, y, enabled]) => {
     onChangeTrigger(x, y, enabled);
   });
 
@@ -41,7 +148,7 @@ test("watch nested", () => {
 
   const onChangeTrigger = jest.fn();
 
-  watch([x, () => object.position.y, enabled], ([x, y, enabled]) => {
+  watchSources([x, () => object.position.y, enabled], ([x, y, enabled]) => {
     onChangeTrigger(x, y, enabled);
   });
 

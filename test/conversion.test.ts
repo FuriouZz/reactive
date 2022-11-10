@@ -11,16 +11,14 @@ test("signal to computed", () => {
   const c = signalToComputed($count);
 
   createEffect(() => {
+    // console.log("createEffect", count());
     onEffectTrigger(count());
   });
 
-  watch(
-    [c],
-    ([computed]) => {
-      onWatchTrigger(computed);
-    },
-    { immediate: true }
-  );
+  watch(c, (c) => {
+    // console.log("watch", c);
+    onWatchTrigger(c);
+  });
 
   setCount(1);
   c.value = 2;
@@ -52,8 +50,8 @@ test("computed to signal", () => {
   });
 
   watch(
-    [c],
-    ([c]) => {
+    c,
+    (c) => {
       onWatchTrigger(c);
     },
     { immediate: true }
@@ -85,8 +83,8 @@ test("ref to signal", () => {
   });
 
   watch(
-    [c],
-    ([c]) => {
+    c,
+    (c) => {
       onWatchTrigger(c);
     },
     { immediate: true }

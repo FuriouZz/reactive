@@ -1,8 +1,7 @@
-import { triggerChange } from "./helpers.js";
 import { internalObservable } from "./internals.js";
 import { observable } from "./observable.js";
-import { Computed, Readonly, ToRefs } from "./types.js";
-import { createWatcher } from "./watcher.js";
+import { Computed, Readonly, ToRefs, WatchDependency } from "./types.js";
+import { captureDependencies } from "./watcher.js";
 
 /**
  * @public
@@ -23,11 +22,21 @@ export function computed<T, U = T>(
  */
 export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
   const target = { value: null! as T };
+  let dirty = true;
 
-  const o = observable<{ value: T }, any>(target, {
+  const o = observable(target, {
     watchable: true,
-    reference: true,
-    set(target, key, newValue, oldValue, receiver) {
+    type: "computed",
+    get(target, key, receiver) {
+      if (dirty) {
+        dirty = false;
+        const { value, dependencies } = captureDependencies(get);
+        listen(dependencies);
+        Reflect.set(target, key, value, receiver);
+      }
+      return Reflect.get(target, key, receiver);
+    },
+    set(target, key, newValue, _oldValue, receiver) {
       if (typeof set === "function") {
         Reflect.set(target, key, newValue, receiver);
         set(newValue);
@@ -37,35 +46,42 @@ export function computed<T, U = T>(get: () => T, set?: (value: U) => void) {
       }
     },
     mixin: {
-      $invalidate() {
-        watcher();
+      $invalidate: () => {
+        if (!internal) return;
+        dirty = true;
+        internal.trigger("value");
       },
     },
   });
 
-  const internal = internalObservable(o);
+  const listen = (dependencies: WatchDependency[]) => {
+    if (!internal) return;
 
-  const watcher = createWatcher<T>(
-    () => {
-      const oldValue = target.value;
-      const newValue = get();
-      target.value = newValue;
-      triggerChange(o, "value", { value: oldValue });
-      return newValue;
-    },
-    ({ roots }) => {
-      if (internal) {
-        roots.forEach((root) => {
-          if (!internal.dependencies.has(root.observable)) {
-            internal.dependencies.add(root.observable);
-            root.observable.change.on(() => watcher());
-          }
-        });
+    // Reset dependencies
+    internal.dependencies.clear();
+
+    dependencies.forEach((root) => {
+      if (!internal.dependencies.has(root.observable)) {
+        internal.dependencies.add(root.observable);
+
+        unwatches.push(
+          root.observable.change.on(() => {
+            unwatch();
+            o.$invalidate();
+          })
+        );
       }
-    }
-  );
+    });
+  };
 
-  watcher();
+  const internal = internalObservable(o);
+  const unwatches: (() => void)[] = [];
+  const unwatch = () => {
+    if (unwatches.length > 0) {
+      unwatches.forEach((u) => u());
+      unwatches.length = 0;
+    }
+  };
 
   return o as Computed<T, U>;
 }

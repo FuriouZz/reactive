@@ -1,19 +1,83 @@
 import ChangeEmitter from "./ChangeEmitter.js";
-import { listen } from "./helpers.js";
-import {
-  INTERNAL_OBSERVABLE_KEY,
-  INTERNAL_REF_KEY,
-  reactiveToTarget,
-  targetToReactive,
-} from "./internals.js";
+import { isObservable } from "./helpers.js";
+import { $Target, targetToReactive, internalObservable } from "./internals.js";
+import { isRefOrComputed } from "./ref.js";
+import { registerObervable as registerDependency } from "./watcher.js";
 import {
   ObservableOptions,
   Observable,
   InternalObservable,
-  ChangeEvent,
   ObservableMixin,
 } from "./types.js";
-import { registerWatch } from "./watcher.js";
+
+const addDependency = (
+  observable: InternalObservable<any>,
+  dep: Observable,
+  key: string | symbol
+) => {
+  const internal = internalObservable(dep);
+  if (!internal || observable.dependencies.has(internal)) return;
+  observable.dependencies.add(internal);
+  internal.change.on((e) => {
+    observable.trigger(key, e.newValue, e.oldValue);
+  });
+};
+
+const findDependencies = (
+  observable: InternalObservable<any>,
+  options?: ObservableOptions<any, any>
+) => {
+  if (observable.type === "reactive") {
+    for (const key in observable.target) {
+      const dep = observable.target[key] as Observable;
+      const isReactive = isObservable(dep);
+
+      if (isReactive) {
+        addDependency(observable, dep, key);
+      } else if (options?.deep && typeof dep === "object" && dep !== null) {
+        applyDeep(observable, key, dep, options);
+      }
+    }
+  }
+};
+
+const applyDeep = (
+  observable: InternalObservable<any>,
+  key: string | symbol,
+  value: any,
+  options?: ObservableOptions<any, any>
+) => {
+  if (options?.deep && typeof value === "object" && value !== null) {
+    const reactive = getOrCreateObservable(value, options);
+    addDependency(observable, reactive, key);
+  }
+};
+
+const getOrCreateObservable = (
+  value: any,
+  options?: ObservableOptions<any, any>
+) => {
+  if (typeof value !== "object" || value === null) {
+    throw new Error(
+      "[reactive] Cannot get or create observable from non-object"
+    );
+  }
+
+  let dep: Observable;
+  const isReactive = isObservable(value);
+  const hasReactiveResult = targetToReactive.has(value);
+
+  // Get observable or transform result to observable
+  if (isReactive) {
+    dep = value;
+  } else if (hasReactiveResult) {
+    dep = targetToReactive.get(value)!.proxy;
+  } else {
+    dep = observable(value, options);
+  }
+
+  return dep;
+};
 
 const createObservable = <
   TTarget extends object,
@@ -24,72 +88,23 @@ const createObservable = <
 ): InternalObservable<TTarget, TMixin> => {
   const change = new ChangeEmitter();
   const equals = options?.compare || Object.is;
-  const dependencies = new Set<Observable>();
+  const dependencies = new Set<InternalObservable>();
 
-  if (options?.reference && !("value" in target)) {
+  if (options?.type !== "reactive" && !("value" in target)) {
     throw new Error(
       "[reactive] A reference must have a value property in its target."
     );
   }
 
-  const addDependency = (
-    target: any,
-    key: string | symbol,
-    dep: Observable
-  ) => {
-    if (dependencies.has(dep)) return;
-    dependencies.add(dep);
-    listen(dep).on((e) => {
-      internalObs.trigger([key], {
-        [key]: { ...target, [e.key]: e.oldValue },
-      });
-    });
-  };
-
-  const getOrCreateObservable = (value: any) => {
-    if (typeof value !== "object" || value === null) {
-      throw new Error(
-        "[reactive] Cannot get or create observable from non-object"
-      );
-    }
-
-    let dep: Observable;
-    const isReactive = reactiveToTarget.has(value);
-    const hasReactiveResult = targetToReactive.has(value);
-
-    // Get observable or transform result to observable
-    if (isReactive) {
-      dep = value;
-    } else if (hasReactiveResult) {
-      dep = targetToReactive.get(value)!;
-    } else {
-      dep = observable(value, options);
-    }
-
-    return dep;
-  };
-
-  const applyDeep = (key: string | symbol, value: any) => {
-    if (options?.deep && typeof value === "object" && value !== null) {
-      const dep = getOrCreateObservable(value);
-      addDependency(value, key, dep);
-    }
-  };
-
   const get = (target: TTarget, key: string | symbol, receiver: any) => {
-    if (key === INTERNAL_OBSERVABLE_KEY) {
-      return internalObs;
-    }
-
-    if (key === INTERNAL_REF_KEY) {
-      return !!options?.reference;
-    }
+    if (key === $Target) return target;
 
     // watchable: true
     if (options?.watchable) {
-      registerWatch(internalObs as InternalObservable, key);
+      registerDependency(internalObs, key);
     }
 
+    // Get mixin value at key
     if (options?.mixin && Reflect.has(options.mixin, key)) {
       return Reflect.get(options.mixin, key);
     }
@@ -100,33 +115,25 @@ const createObservable = <
         : Reflect.get(target, key, receiver);
 
     // Take value from ref/computed
-    if (
-      typeof result === "object" &&
-      result !== null &&
-      Reflect.get(result, INTERNAL_REF_KEY)
-    ) {
+    if (isRefOrComputed(result)) {
       result = result.value;
     }
 
     // deep: true
-    applyDeep(key, result);
+    if (options?.deep) {
+      applyDeep(internalObs, key, result, options);
+    }
 
-    const value = targetToReactive.has(result)
-      ? targetToReactive.get(result)
-      : result;
+    const isReactive = targetToReactive.has(result);
+    const value = isReactive ? targetToReactive.get(result)!.proxy : result;
 
     return value;
   };
 
-  const has = (target: TTarget, key: string | symbol) => {
-    if (key === INTERNAL_OBSERVABLE_KEY) {
-      return true;
-    }
+  const has = (target: TTarget, key: string | symbol): boolean => {
+    if (key === $Target) return true;
 
-    if (key === INTERNAL_REF_KEY) {
-      return !!options?.reference;
-    }
-
+    // Has mixin at key
     if (options?.mixin && Reflect.has(options.mixin, key)) {
       return true;
     }
@@ -146,109 +153,53 @@ const createObservable = <
       return Reflect.set(options.mixin, key, newValue);
     }
 
-    let isValid = false;
-    const currentValue = Reflect.get(target, key, receiver);
+    let isValid = true;
+    let currentValue = Reflect.get(target, key, receiver);
 
     // Set .value to ref/computed
-    if (
-      typeof currentValue === "object" &&
-      currentValue !== null &&
-      Reflect.get(currentValue, INTERNAL_REF_KEY)
-    ) {
-      if (equals(currentValue.value, newValue)) return true;
-
-      if (typeof options?.set === "function") {
-        isValid = options.set(
-          currentValue,
-          "value",
-          newValue,
-          currentValue.value,
-          receiver
-        );
-      } else {
-        isValid = Reflect.set(currentValue, "value", newValue, receiver);
-      }
-
-      if (isValid) {
-        change.dispatch({
-          key,
-          newValue,
-          oldValue: currentValue.value,
-        });
-      }
-
-      return isValid;
+    if (isRefOrComputed(currentValue)) {
+      if (equals(currentValue.value, newValue)) return isValid;
+      isValid = Reflect.set(currentValue, "value", newValue);
+      currentValue = currentValue.value;
     }
 
-    // Classic cases
-    if (equals(currentValue, newValue)) return true;
-
-    if (typeof options?.set === "function") {
-      isValid = options.set(target, key, newValue, currentValue, receiver);
-    } else {
-      isValid = Reflect.set(target, key, newValue, receiver);
+    // Other cases
+    else {
+      if (equals(currentValue, newValue)) return isValid;
+      if (typeof options?.set === "function") {
+        isValid = options.set(target, key, newValue, currentValue, receiver);
+      } else {
+        isValid = Reflect.set(target, key, newValue, receiver);
+      }
     }
 
     if (isValid) {
       change.dispatch({
         key,
-        newValue,
+        newValue: Reflect.get(target, key, receiver),
         oldValue: currentValue,
       });
     }
-
     return isValid;
   };
 
-  const trigger = (keys?: (string | symbol)[], oldValues?: any) => {
+  const trigger = <K extends keyof TTarget>(
+    key: K | "$target" = "$target",
+    newValue?: TTarget[K],
+    oldValue?: TTarget[K]
+  ) => {
     const muted = change.muted;
     change.muted = false;
-
-    let _target = target;
-    keys =
-      keys === undefined || keys.length === 0 ? Object.keys(_target) : keys;
-
-    if (keys.length > 0) {
-      for (const key of keys) {
-        if (options?.mixin && Reflect.has(options.mixin, key)) {
-          _target = options.mixin as any;
-        } else {
-          _target = target;
-        }
-
-        const event: ChangeEvent = { key, newValue: Reflect.get(_target, key) };
-        if (oldValues && Reflect.has(oldValues, key)) {
-          event.oldValue = Reflect.get(oldValues, key);
-          if (!equals(event.newValue, event.oldValue)) {
-            change.dispatch(event);
-          }
-        } else {
-          change.dispatch(event);
-        }
-      }
+    if (key === "$target") {
+      change.dispatch({ key: "$target", newValue: internalObs.proxy });
+    } else {
+      newValue = newValue ?? Reflect.get(internalObs.target, key);
+      change.dispatch({ key: key as string | symbol, newValue, oldValue });
     }
-
     change.muted = muted;
   };
 
-  const findDependencies = (target: TTarget) => {
-    for (const key in target) {
-      const value = target[key] as Observable;
-      const isReactive = reactiveToTarget.has(value);
-      if (isReactive) {
-        const target = reactiveToTarget.get(value)!;
-        addDependency(target, key, value);
-      } else if (options?.deep && typeof value === "object" && value !== null) {
-        applyDeep(key, value);
-      }
-    }
-  };
-
-  const { proxy, revoke } = Proxy.revocable(target, {
-    get,
-    set,
-    has,
-  });
+  const { proxy, revoke } = Proxy.revocable(target, { get, set, has });
 
   const internalObs: InternalObservable<TTarget, TMixin> = {
     target,
@@ -257,9 +208,10 @@ const createObservable = <
     change,
     trigger,
     dependencies,
+    type: options?.type ?? "reactive",
   };
 
-  findDependencies(target);
+  findDependencies(internalObs, options);
 
   // lazy; true
   if (options?.lazy) {
@@ -281,14 +233,11 @@ export const observable = <
   options?: ObservableOptions<TTarget, TMixin>
 ): Observable<TTarget, TMixin> => {
   if (targetToReactive.has(target)) {
-    const reactive = targetToReactive.get(target)!;
-    return reactive as Observable<TTarget, TMixin>;
+    const reactive = targetToReactive.get(target);
+    return reactive!.proxy as Observable<TTarget, TMixin>;
   }
 
   const o = createObservable<TTarget, TMixin>(target, options);
-
-  targetToReactive.set(target, o.proxy);
-  reactiveToTarget.set(o.proxy, target);
-
+  targetToReactive.set(target, o);
   return o.proxy;
 };

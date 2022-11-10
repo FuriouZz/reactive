@@ -1,18 +1,16 @@
 import {
   reactive,
   watch,
-  onChange,
-  onKeyChange,
+  watchKeys,
   ref,
   triggerChange,
 } from "../lib/reactive";
 
 test("ref", () => {
+  const onChangeTrigger = jest.fn();
   const r = ref(0);
 
-  const onChangeTrigger = jest.fn();
-
-  watch([r], ([r]) => {
+  watch(r, (r) => {
     onChangeTrigger(r);
   });
 
@@ -38,25 +36,19 @@ test("lazyRef", () => {
   const resized = ref(false, { lazy: true });
   const moved = ref(false);
 
-  onChange(rectangle, () => {
-    onRectangleChange({ ...rectangle });
+  watchKeys(rectangle, ["x", "y"], () => {
+    moved.value = true;
   });
 
-  onKeyChange(rectangle, ["x", "y", "width", "height"], (event) => {
-    onRectangleKeyChange(event);
-    if (event.key === "x" || event.key === "y") {
-      moved.value = true;
-    } else {
-      resized.value = true;
-    }
+  watchKeys(rectangle, ["width", "height"], () => {
+    resized.value = true;
   });
 
-  onChange(moved, () => {
-    onMovedChange(moved.value);
-  });
-
-  onChange(resized, () => {
-    onResizedChange(resized.value);
+  watch(moved, (v) => onMovedChange(v));
+  watch(resized, (v) => onResizedChange(v));
+  watch(rectangle, (v, e) => {
+    onRectangleChange(v);
+    onRectangleKeyChange(e);
   });
 
   rectangle.width = 800;
@@ -66,21 +58,21 @@ test("lazyRef", () => {
   expect(onResizedChange).toHaveBeenCalledTimes(0);
 
   // Trigger change on lazy ref
-  triggerChange(resized);
+  triggerChange(resized, "value");
 
   expect(onResizedChange).toHaveBeenCalledTimes(1);
   expect(onMovedChange).toHaveBeenCalledTimes(1);
 
   expect(onRectangleChange).toHaveBeenNthCalledWith(1, {
     width: 800,
-    height: 0,
-    x: 0,
+    height: 600,
+    x: 10,
     y: 0,
   });
   expect(onRectangleChange).toHaveBeenNthCalledWith(2, {
     width: 800,
     height: 600,
-    x: 0,
+    x: 10,
     y: 0,
   });
   expect(onRectangleChange).toHaveBeenNthCalledWith(3, {
@@ -89,6 +81,8 @@ test("lazyRef", () => {
     x: 10,
     y: 0,
   });
+  expect(onRectangleChange).toHaveBeenCalledTimes(3);
+
   expect(onRectangleKeyChange).toHaveBeenNthCalledWith(1, {
     key: "width",
     oldValue: 0,
@@ -104,4 +98,21 @@ test("lazyRef", () => {
     oldValue: 0,
     newValue: 10,
   });
+  expect(onRectangleKeyChange).toHaveBeenCalledTimes(3);
+});
+
+test("watch reference", () => {
+  const onChange = jest.fn();
+  const x = ref(0);
+  const position = reactive({ x, y: 0 });
+
+  watch(x, (x) => {
+    // console.log(x);
+    onChange(x);
+  });
+
+  position.x = 10;
+
+  expect(onChange).toHaveBeenNthCalledWith(1, 10);
+  expect(onChange).toBeCalledTimes(1);
 });

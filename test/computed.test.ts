@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from "../lib/reactive";
+import { computed, reactive, ref, watch } from "../lib/reactive";
 
 test("computed", () => {
   const o = reactive({ name: "World" });
@@ -14,19 +14,20 @@ test("computed", () => {
 });
 
 test("watch computed", () => {
-  const position = reactive({ x: 0, y: 0 });
-
-  const x = computed(() => position.x);
   const onChange = jest.fn();
+  const position = reactive({ x: 0, y: 0 });
+  const x = computed(() => position.x);
 
-  watch([x], ([x]) => {
+  watch(x, (x) => {
+    // console.log(x);
     onChange(x);
   });
 
   position.x = 10;
 
-  expect(onChange).toHaveBeenNthCalledWith(1, 10);
-  expect(onChange).toBeCalledTimes(1);
+  expect(onChange).toHaveBeenNthCalledWith(1, 0);
+  expect(onChange).toHaveBeenNthCalledWith(2, 10);
+  expect(onChange).toBeCalledTimes(2);
 });
 
 test("computed inside reactive", () => {

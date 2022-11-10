@@ -1,4 +1,4 @@
-import { reactive, isObservable, watch, listen } from "../lib/reactive";
+import { reactive, isObservable, watchSources, watch } from "../lib/reactive";
 
 test("Change field", () => {
   const o = reactive({ message: "Hello World" });
@@ -21,7 +21,7 @@ test("deep", () => {
   const objPlopChange = jest.fn();
   const objPlop2Change = jest.fn();
 
-  listen(o).on((e) => {
+  watch(o, (_, e) => {
     if (e.key === "obj") {
       objChange();
     } else if (e.key === "obj.plop") {
@@ -29,7 +29,7 @@ test("deep", () => {
     }
   });
 
-  watch([() => o.obj?.plop2], ([_plop2]) => {
+  watchSources([() => o.obj?.plop2], ([_plop2]) => {
     objPlop2Change();
   });
 

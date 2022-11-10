@@ -1,16 +1,7 @@
-import { internalObservable } from "./internals.js";
-import { InternalObservable } from "./types.js";
-
-type Root = {
-  observable: InternalObservable;
-  deps: InternalObservable[];
-};
+import { InternalObservable, WatchContext, WatchDependency } from "./types.js";
 
 let CONTEXT_IDX = -1;
-const CONTEXTS: {
-  listening: boolean;
-  roots: Root[];
-}[] = [];
+const CONTEXTS: WatchContext[] = [];
 
 function getContext(): typeof CONTEXTS[number] | undefined {
   return CONTEXTS[CONTEXT_IDX];
@@ -19,58 +10,64 @@ function getContext(): typeof CONTEXTS[number] | undefined {
 function createContext() {
   CONTEXT_IDX++;
   CONTEXTS[CONTEXT_IDX] = CONTEXTS[CONTEXT_IDX] || {
-    items: [],
-    roots: [],
+    id: CONTEXT_IDX,
+    dependencies: [],
     listening: false,
   };
   const ctx = CONTEXTS[CONTEXT_IDX];
-  ctx.roots.length = 0;
+  ctx.dependencies.length = 0;
   ctx.listening = true;
   return ctx;
 }
 
 function dropContext(ctx: typeof CONTEXTS[number]) {
   CONTEXT_IDX--;
-  ctx.roots.length = 0;
+  const id = ctx.id;
+  const dependencies = ctx.dependencies.slice(0);
+  ctx.dependencies.length = 0;
   ctx.listening = false;
+  return { id, dependencies };
 }
 
 /**
  * @internal
  */
-export function registerWatch(
-  internal: InternalObservable,
+export function registerObervable(
+  iobs: InternalObservable,
   _key: string | symbol
 ) {
   const ctx = getContext();
-  if (!ctx?.listening) return;
+  if (!ctx?.listening || !iobs) return;
 
-  let root: Root | undefined = undefined;
+  let root: WatchDependency | undefined = undefined;
 
-  for (const item of ctx.roots) {
-    if (Object.is(internal.target, item.observable.target)) {
+  for (const item of ctx.dependencies) {
+    if (Object.is(iobs.target, item.observable.target)) {
       root = item;
       break;
     }
 
     for (const key in item.deps) {
       const dep = item.deps[key];
-      if (Object.is(internal.target, dep.target)) {
+      if (Object.is(iobs.target, dep.target)) {
         root = item;
         break;
       }
     }
   }
 
+  /**
+   * Try to only register the highest reactive object
+   * eg.: "cube.size.x" only "cube" is registered not "size", even "x" in a computed case.
+   */
   if (!root) {
-    root = { observable: internal, deps: [] };
-    ctx.roots.push(root);
+    root = { observable: iobs, deps: [] };
+    ctx.dependencies.push(root);
   }
 
-  for (const dep of internal.dependencies) {
-    const idep = internalObservable(dep);
-    if (idep && !root.deps.includes(idep)) {
-      root.deps.push(idep);
+  for (const dep of iobs.dependencies) {
+    if (!root.deps.includes(dep)) {
+      root.deps.push(dep);
     }
   }
 }
@@ -78,42 +75,38 @@ export function registerWatch(
 /**
  * @internal
  */
-export function getWatchKeys<T>(getter: () => T, caller?: unknown) {
+export function captureDependencies<T>(getter: () => T) {
   const ctx = createContext();
-  const value = getter.call(caller);
-  const roots = ctx.roots.slice(0);
-  dropContext(ctx);
-  return { value, roots };
+  const value = getter();
+  return { ...dropContext(ctx), value };
 }
 
 /**
  * @internal
  */
-export const createWatcher = <T>(
-  getter: () => T,
-  onResult?: (result: { value: T; roots: Root[] }) => void
-) => {
+export const createWatcher = <T>(getter: () => T) => {
   const unwatches: (() => void)[] = [];
 
   const watcher = () => {
-    watcher.unwatch();
-    const result = getWatchKeys<T>(getter);
-    const { roots } = result;
+    const result = captureDependencies(getter);
 
     // console.log(
     //   JSON.stringify(
-    //     roots.map((r) => ({
+    //     result.roots.map((r) => ({
     //       target: r.observable.target,
     //       deps: r.deps.map((d) => d.target),
     //     }))
     //   )
     // );
 
-    for (const { observable: internal } of roots) {
-      unwatches.push(internal.change.once(() => watcher()));
+    for (const { observable: internal } of result.dependencies) {
+      unwatches.push(
+        internal.change.once(() => {
+          watcher.unwatch();
+          watcher();
+        })
+      );
     }
-
-    if (onResult) onResult(result);
   };
 
   watcher.unwatch = () => {

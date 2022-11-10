@@ -13,9 +13,9 @@ test("pipe", () => {
     .ref();
 
   watch(
-    [result],
-    ([result]) => {
-      onChangeTrigger(result);
+    result,
+    (size) => {
+      onChangeTrigger(size);
     },
     { immediate: true }
   );

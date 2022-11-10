@@ -1,9 +1,12 @@
-import { computed } from "./computed.js";
-import { internalObservable, reactiveToTarget } from "./internals.js";
+import { computed, toRef } from "./computed.js";
+import { $Target, internalObservable } from "./internals.js";
+import { isComputed, isRefOrComputed } from "./ref.js";
 import {
   ChangeEvent,
   Computed,
+  InlineWatchSource,
   InlineWatchSourceTuple,
+  MapTuple,
   Observable,
   ObservableMixin,
   Ref,
@@ -11,13 +14,14 @@ import {
   WatchOptions,
   WatchSource,
 } from "./types.js";
+import { createWatcher } from "./watcher.js";
 
 /**
  * Check if the object is reactive
  * @public
  */
-export function isObservable<T = any>(obj: T): obj is Observable<any> {
-  return reactiveToTarget.has(obj as any);
+export function isObservable<T>(obj: T): obj is Observable<any> {
+  return typeof obj === "object" && obj !== null && Reflect.has(obj, $Target);
 }
 
 /**
@@ -38,11 +42,11 @@ export const raw = <
  * Expose the change emitter
  * @public
  */
-export const listen = (obj: any) => {
+export const getChangeEmitter = (obj: any) => {
   const observable = internalObservable(obj);
   if (!observable)
     throw new Error(`[reactive] This object is not an observable`);
-  return observable.change.expose;
+  return observable.change;
 };
 
 /**
@@ -50,66 +54,90 @@ export const listen = (obj: any) => {
  * @public
  */
 export const clearListeners = (obj: any) => {
-  listen(obj).removeListeners();
-};
-
-/**
- * Listen changes
- * @public
- */
-export const onChange = (
-  obj: any,
-  cb: (event: ChangeEvent) => void,
-  caller?: unknown
-) => {
-  return listen(obj).on(cb as any, caller);
-};
-
-/**
- * Listen changes from a list key
- * @public
- */
-export const onKeyChange = (
-  obj: any,
-  key: string | symbol | (string | symbol)[],
-  cb: (event: ChangeEvent) => void,
-  caller?: unknown
-) => {
-  const keys = Array.isArray(key) ? key : [key];
-  const emitter = listen(obj);
-
-  const ret = emitter.on(cb as any, caller);
-  emitter.filter(cb as any, (e) => keys.includes(e.key));
-
-  return ret;
+  getChangeEmitter(obj).removeListeners();
 };
 
 /**
  * Trigger a change
  * @public
  */
-export const triggerChange = (
-  obj: any,
-  key?: string | symbol | (string | symbol)[],
-  oldValues?: any
+export const triggerChange = <
+  TTarget extends object,
+  TMixin extends object,
+  K extends keyof TTarget
+>(
+  o: Observable<TTarget, TMixin>,
+  key: keyof TTarget | "$target" = "$target",
+  newValue?: TTarget[K],
+  oldValue?: TTarget[K]
 ) => {
-  const observable = internalObservable(obj);
-  if (!observable)
-    throw new Error(`[reactive] This object is not an observable`);
+  const internal = internalObservable<TTarget, TMixin>(o);
+  if (!internal) throw new Error(`[reactive] This object is not an observable`);
+  internal.trigger(key, newValue, oldValue);
+};
 
-  if (key) {
-    const keys = Array.isArray(key) ? key : [key];
-    observable.trigger(keys, oldValues);
-  } else {
-    observable.trigger([], oldValues);
+/**
+ * Watch reactive object
+ * @public
+ */
+export function watch<T extends Observable>(
+  obj: T,
+  cb: (observable: InlineWatchSource<T>, event: ChangeEvent) => void,
+  options?: WatchOptions & { filter?: (keyof T)[] }
+) {
+  const callback = (event: ChangeEvent) => {
+    if (options?.filter && !options.filter.includes(event.key as any)) return;
+    let value = obj as InlineWatchSource<T>;
+    if (isRefOrComputed(obj)) value = obj.value as InlineWatchSource<T>;
+    cb.call(options?.caller, value, event);
+  };
+
+  const isImmediate = isComputed(obj) || options?.immediate;
+
+  if (isImmediate) {
+    callback({ key: "$target", newValue: obj });
   }
+
+  return getChangeEmitter(obj).on(callback);
+}
+
+/**
+ * Automatically watch reactive objects
+ * @public
+ */
+export function watchEffect(cb: () => void) {
+  const w = createWatcher(cb);
+  w();
+  return w.unwatch;
+}
+
+/**
+ * Watch keys of a reactive object
+ * @public
+ */
+export const watchKeys = <T extends Observable, TKeys extends (keyof T)[]>(
+  obj: T,
+  keys: [...TKeys],
+  cb: (
+    newValues: MapTuple<T, [...TKeys]>,
+    oldValues: MapTuple<T, [...TKeys]>
+  ) => void,
+  options?: WatchOptions
+) => {
+  const watchables = keys.map((key) => {
+    const value = obj[key];
+    if (isRefOrComputed(value)) return value;
+    return toRef(obj, key);
+  });
+
+  return watchSources(watchables, cb as any, options);
 };
 
 /**
  * Watch changes from reactive objects present in the callback function
  * @public
  */
-export function watch<T extends WatchSource[]>(
+export function watchSources<T extends WatchSource[]>(
   values: [...T],
   cb: WatchCallback<T>,
   options?: WatchOptions
@@ -124,12 +152,17 @@ export function watch<T extends WatchSource[]>(
   ) as InlineWatchSourceTuple<T>;
 
   for (const value of computedValues) {
-    const unwatch = listen(value).on(() => {
+    const unwatch = getChangeEmitter(value).on(() => {
       const oldValues = newValues;
       newValues = computedValues.map(
         (v) => v.value
       ) as InlineWatchSourceTuple<T>;
-      cb(newValues, oldValues);
+
+      const hasDiff = newValues.some(
+        (_, i) => !Object.is(newValues[i], oldValues[i])
+      );
+
+      if (hasDiff) cb(newValues, oldValues);
     });
     unwatches.push(unwatch);
   }
@@ -140,7 +173,8 @@ export function watch<T extends WatchSource[]>(
 
   return () => {
     if (unwatches.length === 0) return;
-    for (const unwatch of unwatches) {
+    for (let i = 0; i < unwatches.length; i++) {
+      const unwatch = unwatches[i];
       unwatch();
     }
     unwatches.length = 0;

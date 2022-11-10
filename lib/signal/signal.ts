@@ -47,8 +47,11 @@ export function createEffect<T>(subscriber: Effect<T>, value: T): T;
 /**
  * @public
  */
-export function createEffect<T>(subscriber: Effect<T | undefined>, value?: T) {
-  let lastComputedValue = value;
+export function createEffect<T>(
+  subscriber: Effect<T | undefined>,
+  defaultValue?: T
+) {
+  let lastComputedValue = defaultValue;
   const callback: Subscriber = () => {
     lastComputedValue = subscriber(lastComputedValue);
   };
@@ -56,6 +59,8 @@ export function createEffect<T>(subscriber: Effect<T | undefined>, value?: T) {
   try {
     Subscribers.push(callback);
     callback();
+  } catch (e) {
+    throw e;
   } finally {
     Subscribers.pop();
   }

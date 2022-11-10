@@ -3,16 +3,24 @@ import { Computed, Ref } from "./reactive/types.js";
 import { createEffect } from "./signal/signal.js";
 import { createWriteStream } from "./signal/stream.js";
 
+/**
+ * @public
+ */
 export function signalToComputed<T>(signal: [() => T, (value: T) => void]) {
   const [get, set] = signal;
   const c = computed(get, set);
   createEffect(() => {
-    get();
-    c.$invalidate();
+    const v = get();
+    if (v !== c.value) {
+      c.$invalidate();
+    }
   });
   return c;
 }
 
+/**
+ * @public
+ */
 export function computedToSignal<T>(c: Computed<T, T> | Ref<T>) {
   let isWriting = false;
 
@@ -27,8 +35,8 @@ export function computedToSignal<T>(c: Computed<T, T> | Ref<T>) {
   const { read } = pipe((source) => source);
 
   watch(
-    [c],
-    ([c]) => {
+    c,
+    (c) => {
       if (!isWriting) {
         write(c);
       }

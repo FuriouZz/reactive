@@ -1,7 +1,7 @@
 import { raw } from "./helpers.js";
 import { Ref } from "./types.js";
 import { observable } from "./observable.js";
-import { INTERNAL_REF_KEY } from "./internals.js";
+import { internalObservable } from "./internals.js";
 
 /**
  * Create a boxed value
@@ -10,7 +10,7 @@ import { INTERNAL_REF_KEY } from "./internals.js";
 export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
   return observable(
     { value },
-    { ...options, watchable: true, reference: true, deep: false }
+    { ...options, watchable: true, type: "reference", deep: false }
   );
 };
 
@@ -19,7 +19,7 @@ export const ref = <T>(value: T, options?: { lazy?: boolean }): Ref<T> => {
  * @public
  */
 export const unref = <T>(observable: Ref<T>): T | undefined => {
-  if (isRef(observable)) {
+  if (isRefOrComputed(observable)) {
     const target = raw(observable);
     return target?.value;
   }
@@ -27,9 +27,28 @@ export const unref = <T>(observable: Ref<T>): T | undefined => {
 };
 
 /**
- * Is it a box?
+ * Is it a boxed value or computed value?
  * @public
  */
-export const isRef = (observable: any): boolean => {
-  return Reflect.get(observable, INTERNAL_REF_KEY);
+export const isRefOrComputed = <T = unknown>(obj: any): obj is Ref<T> => {
+  const internal = internalObservable(obj);
+  return internal?.type === "reference" || internal?.type === "computed";
+};
+
+/**
+ * Is it a boxed value?
+ * @public
+ */
+export const isRef = <T = unknown>(obj: any): obj is Ref<T> => {
+  const internal = internalObservable(obj);
+  return internal?.type === "reference";
+};
+
+/**
+ * Is it a computed value?
+ * @public
+ */
+export const isComputed = <T = unknown>(obj: any): obj is Ref<T> => {
+  const internal = internalObservable(obj);
+  return internal?.type === "computed";
 };

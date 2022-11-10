@@ -1,14 +1,4 @@
-import { ChangeEvent } from "./types.js";
-
-/**
- * @public
- */
-export type ChangeListener = (event: ChangeEvent) => void;
-
-/**
- * @public
- */
-export type FilterCallback = (event: ChangeEvent) => boolean;
+import { ChangeEvent, ChangeListener } from "./types.js";
 
 /**
  * @public
@@ -23,32 +13,10 @@ export default class ChangeEmitter {
     once: boolean;
     fn: ChangeListener;
     caller: unknown;
-    filter?: FilterCallback;
   }[];
-
-  expose: {
-    on: (listener: ChangeListener, caller?: unknown) => () => void;
-    off: (listener: ChangeListener) => void;
-    once: (listener: ChangeListener, caller?: object) => () => void;
-    filter: (listener: ChangeListener, filter: FilterCallback) => void;
-    removeListeners: () => void;
-    getID: () => number;
-    mute: (muted: boolean) => void;
-    getListenerCount: () => number;
-  };
 
   constructor() {
     this.#listeners = [];
-    this.expose = {
-      on: this.on.bind(this),
-      off: this.off.bind(this),
-      once: this.once.bind(this),
-      removeListeners: this.removeListeners.bind(this),
-      filter: this.filter.bind(this),
-      getID: () => this.id,
-      mute: this.mute.bind(this),
-      getListenerCount: this.getListenerCount.bind(this),
-    };
   }
 
   on(listener: ChangeListener, caller?: unknown) {
@@ -74,11 +42,6 @@ export default class ChangeEmitter {
     }
   }
 
-  filter(listener: ChangeListener, filter: FilterCallback) {
-    const l = this.#listeners.find((l) => l.fn === listener);
-    if (l) l.filter = filter;
-  }
-
   getListenerCount() {
     return this.#listeners.length;
   }
@@ -90,11 +53,10 @@ export default class ChangeEmitter {
   dispatch(event: ChangeEvent) {
     if (this.muted) return;
 
-    const listeners = this.#listeners
-      .slice(0)
-      .filter(({ filter }) => !filter || filter(event));
+    const start = this.#listeners.length - 1;
 
-    for (const listener of listeners) {
+    for (let index = start; index >= 0; index--) {
+      const listener = this.#listeners[index];
       listener.fn.call(listener.caller, event);
       if (listener.once) {
         this.off(listener.fn);
