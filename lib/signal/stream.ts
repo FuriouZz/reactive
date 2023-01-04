@@ -63,7 +63,7 @@ export function createReadStream<Source, Result = Source>(
   transform?: (source: Source) => Result
 ): ReadStream<Source, Result> {
   const read = createMemo(() => {
-    let value = source();
+    const value = source();
     if (transform) {
       return transform(value);
     }

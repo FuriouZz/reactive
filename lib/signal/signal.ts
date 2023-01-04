@@ -1,16 +1,17 @@
-import { Subscriber, Effect } from "./types.js";
+import { Subscriber, Effect, SignalOptions, Signal } from "./types.js";
 
-const Subscribers: Subscriber[] = [];
+const EffectScopes: (() => void)[] = [];
 
 function getCurrentContext() {
-  return Subscribers[Subscribers.length - 1];
+  return EffectScopes[EffectScopes.length - 1];
 }
 
 /**
  * @public
  */
-export function createSignal<T>(defaultValue: T) {
-  const subscribers: Subscriber[] = [];
+export function createSignal<T>(defaultValue: T, options?: SignalOptions<T>) {
+  const opts = { equals: true, ...options };
+  const subscribers: Subscriber<T>[] = [];
   const box = { value: defaultValue };
 
   const read = () => {
@@ -21,28 +22,38 @@ export function createSignal<T>(defaultValue: T) {
     return box.value;
   };
 
-  const write = (value: T) => {
-    box.value = value;
+  const write = (newValue: T) => {
+    const oldValue = box.value;
+
+    if (opts.equals) {
+      let canSet = true;
+      if (typeof opts.equals === "function") {
+        canSet = opts.equals(newValue, oldValue);
+      } else {
+        canSet = oldValue !== newValue;
+      }
+      if (!canSet) return;
+    }
+
+    box.value = newValue;
     for (let i = 0; i < subscribers.length; i++) {
       const subscriber = subscribers[i];
-      subscriber();
+      subscriber(newValue, oldValue);
     }
   };
 
-  return [read, write] as [() => T, (value: T) => void];
+  return [read, write] as Signal<T>;
 }
 
 /**
  * @public
  */
-export function createEffect<T>(
-  subscriber: Effect<T | undefined>
-): T | undefined;
+export function createEffect<T>(subscriber: Effect<T | undefined>): void;
 
 /**
  * @public
  */
-export function createEffect<T>(subscriber: Effect<T>, value: T): T;
+export function createEffect<T>(subscriber: Effect<T>, defaultValue: T): void;
 
 /**
  * @public
@@ -52,20 +63,16 @@ export function createEffect<T>(
   defaultValue?: T
 ) {
   let lastComputedValue = defaultValue;
-  const callback: Subscriber = () => {
+  const scope = () => {
     lastComputedValue = subscriber(lastComputedValue);
   };
 
   try {
-    Subscribers.push(callback);
-    callback();
-  } catch (e) {
-    throw e;
+    EffectScopes.push(scope);
+    scope();
   } finally {
-    Subscribers.pop();
+    EffectScopes.pop();
   }
-
-  return lastComputedValue;
 }
 
 /**
@@ -74,13 +81,11 @@ export function createEffect<T>(
 export function createMemo<T>(subscriber: Effect<T>) {
   const [read, write] = createSignal<T>(undefined!);
 
-  const callback = (previousValue: T) => {
+  createEffect((previousValue: T) => {
     const value = subscriber(previousValue);
     write(value);
     return value;
-  };
-
-  createEffect(callback, undefined!);
+  }, undefined!);
 
   return read;
 }

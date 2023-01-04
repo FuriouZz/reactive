@@ -3,6 +3,8 @@ import {
   createEffect,
   createMemo,
   createWriteStream,
+  atom,
+  observable,
 } from "../lib/signal";
 
 test("signal", () => {
@@ -160,5 +162,44 @@ test("signal pipe individually", () => {
   expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0, 3);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 4, 3);
   expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 4, 5);
+  expect(onChangeTrigger).toHaveBeenCalledTimes(3);
+});
+
+test("signal atom", () => {
+  const onChangeTrigger = jest.fn();
+
+  const count = atom(0);
+
+  createEffect(() => {
+    onChangeTrigger(count());
+  });
+
+  count(1);
+  count(3);
+  count(5);
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 3);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 5);
+  expect(onChangeTrigger).toHaveBeenCalledTimes(4);
+});
+
+test("signal observable", () => {
+  const onChangeTrigger = jest.fn();
+
+  const count = observable(0);
+
+  count.subscribe((newValue, oldValue) => {
+    onChangeTrigger(oldValue, newValue);
+  });
+
+  count(1);
+  count(3);
+  count(5);
+
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0, 1);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1, 3);
+  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 3, 5);
   expect(onChangeTrigger).toHaveBeenCalledTimes(3);
 });
