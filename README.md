@@ -1,53 +1,127 @@
-Functions to create reactive objects.
+# Reactive <!-- omit in toc -->
+
+- [Examples](#examples)
+- [Atom](#atom)
+- [Store](#store)
+- [Reactive](#reactive)
+
+## Examples
 
 ```ts
-import { reactive, toRef, stream, watch } from "@furiouzz/reactive";
+import { createSignal, createEffect, batch } from "@furiouzz/reactive";
 
-const size = reactive({ width: 100, height: 100 });
-const width = toRef(size, "width");
+const [greeting, setGreeting] = createSignal("Hello");
+const [who, setWho] = createSignal("World");
+const [punctuation, setPunctuation] = createSignal("");
 
-const ref = stream([width])
-  .pipe(([width]) => [width * 0.5])
-  .pipe(([width]) => String(width))
-  .pipe((width) => width + "px")
-  .ref();
+// Listen signals changes
+createEffect(() => {
+  console.log(`${greeting()} ${who()}${punctuation()}`);
+});
 
-watch(
-  [ref],
-  ([value]) => {
-    console.log(value);
-  },
-  { immediate: true } // log: "50px"
-);
-
-size.width = 300; // log: "150px"
-size.width = 200; // log: "100px"
-size.width = 150; // log: "75px"
+// Batch updates & side effects
+batch(() => {
+  setWho("Pablo");
+  setGreeting("¡Hola");
+  setPunctuation("!");
+});
 ```
 
+## Atom
+
 ```ts
-const size = reactive({ width: 800, height:: 600 }, {
-  mixin: {
-    swap() {
-      const       size.width = size.height;
-      size.height = width;
-    },
-  },
+import { createSignal, createEffect, batch } from "@furiouzz/reactive";
+import { makeAtom } from "@furiouzz/reactive/atom.js";
+
+const greeting = makeAtom(createSignal("Hello"));
+const who = makeAtom(createSignal("World"));
+const punctuation = makeAtom(createSignal(""));
+
+// Listen signals changes
+createEffect(() => {
+  console.log(`${greeting()} ${who()}${punctuation()}`);
 });
 
-const { width, height } = toRefs(size);
+// Batch updates & side effects
+batch(() => {
+  who("Pablo");
+  greeting("¡Hola");
+  punctuation("!");
+});
+```
 
-watch([width, height], ([width, height]) => {
-  console.log(width, height);
+## Store
+
+```ts
+import { createMemo, createEffect, batch } from "@furiouzz/reactive";
+import { createStore } from "@furiouzz/reactive/store";
+
+const [state, batchUpdate] = createStore<{
+  greeting: string;
+  user?: {
+    firstname: string;
+    lastname: string;
+  };
+}>({
+  greeting: "Hello",
+  user: { firstname: "John", lastname: "Doe" },
 });
 
-size.width = 1280;
-// log: 1280, 600
+const fullname = createMemo(() => {
+  if (state.user) {
+    return `${state.greeting} ${state.user.firstname} ${state.user.lastname}!`;
+  }
+  return `${state.greeting}!`;
+});
 
-size.height = 720;
-// log: 1280, 720
+createEffect(() => {
+  console.log(fullname());
+});
 
-size.swap();
-// log: 720, 720
-// log: 720, 1280
+batchUpdate({ user: undefined });
+batchUpdate({ user: { firstname: "Pablo", lastname: "Escobar" } });
+batchUpdate({
+  greeting: "Bonjour",
+  user: { firstname: "Francis", lastname: "Dupont" },
+});
+```
+
+## Reactive
+
+```ts
+import { createMemo, createEffect, batch } from "@furiouzz/reactive";
+import { createReactive } from "@furiouzz/reactive/store";
+
+class Vector2 {
+  x = 0;
+  y = 0;
+
+  set(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  setScalar(value: number) {
+    this.set(value, value);
+  }
+}
+
+const onChange = () => console.log(`${vec2.x} ${vec2.y}`);
+
+const vec2 = createReactive(new Vector2());
+const { createEffect, batchUpdate, subscribers } = vec2.$store;
+
+createEffect(() => {
+  onChange(`${vec2.x} ${vec2.y}`);
+});
+
+subscribers.add(onChange);
+
+batchUpdate({ x: 45 });
+batchUpdate({ y: 15 });
+batch(({ apply }) => {
+  vec2.y = vec2.x / 2;
+  apply("update"); // force vec2.y to be updated
+  vec2.x = vec2.y * 1.5;
+});
 ```
