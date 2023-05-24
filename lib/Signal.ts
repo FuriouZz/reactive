@@ -2,6 +2,12 @@ import Context from "./Context.js";
 import Effect from "./Effect.js";
 import { SignalOptions, Subscriber } from "./types.js";
 
+/**
+ * @public
+ * Create a signal object with a get and a set method
+ * A signal is an object with subscribers called at each changes
+ * If changes are done inside a Context, there are executed after Context's scope
+ */
 export default class Signal<T> {
   subscribers: Set<Subscriber>;
 
@@ -22,6 +28,11 @@ export default class Signal<T> {
     this.#value = v;
   }
 
+  /**
+   * Get signal's value
+   * If executed inside an Effect, the Effect is subscribed
+   * @returns
+   */
   get() {
     if (Effect.Current) {
       this.subscribers.add(Effect.Current.trigger);
@@ -29,6 +40,14 @@ export default class Signal<T> {
     return this.value;
   }
 
+  /**
+   * Set signal's value
+   * If executed in Context's scope, updates are recorded and applied
+   * at the end of the scope, then subscribers are triggered.
+   * More info in Context class.
+   * @param newValue
+   * @returns
+   */
   set(newValue: T) {
     const oldValue = this.value;
 

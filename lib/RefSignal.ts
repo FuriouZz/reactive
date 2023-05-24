@@ -1,6 +1,10 @@
 import Signal from "./Signal.js";
 import { SignalOptions } from "./types.js";
 
+/**
+ * @public
+ * Wrap object field into a Signal
+ */
 export default class RefSignal<
   T extends object,
   K extends keyof T

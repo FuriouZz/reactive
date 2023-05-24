@@ -1,4 +1,5 @@
-import { createEffect, createMemo, createStore } from "../lib/index.js";
+import { createEffect, createMemo } from "../lib/entries/index.js";
+import { createStore } from "../lib/entries/store.js";
 
 test("createStore()", () => {
   const [state, batchUpdate] = createStore({ message: "Hello World" });

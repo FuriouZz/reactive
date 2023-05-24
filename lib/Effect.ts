@@ -10,7 +10,7 @@ export default class Effect {
     this.#disposed = false;
     const context = new Context();
     this.trigger = () => {
-      context.run(() => {
+      Context.run(context, () => {
         if (this.#disposed) return;
         try {
           Effect.push(this);

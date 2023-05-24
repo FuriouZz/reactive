@@ -1,70 +1,9 @@
-import Effect from "./Effect.js";
-import Signal from "./Signal.js";
-import Store from "./Store.js";
-import {
-  DeepPartial,
-  ReactiveProxy,
-  SignalOptions,
-  StoreOptions,
-  Subscriber,
-} from "./types.js";
-import Context from "./Context.js";
+import Context from "../Context.js";
+import Store from "../Store.js";
+import { createEffect } from "./index.js";
+import { StoreOptions, DeepPartial, ReactiveProxy } from "../types.js";
 
-export function createSignal<T>(
-  value: T,
-  options?: Pick<SignalOptions<T>, "equals">
-) {
-  const signal = new Signal(value, options);
-  return [() => signal.get(), (value: T) => signal.set(value)] as const;
-}
-
-export function createAtom<T>(value: T) {
-  const signal = new Signal(value);
-  return (...args: [T] | []) => {
-    if (args.length === 1) {
-      signal.set(args[0]);
-    }
-    return signal.get();
-  };
-}
-
-export function createEffect<T>(
-  subscriber: (oldValue: T | undefined) => T
-): () => void;
-export function createEffect<T>(
-  subscriber: (oldValue: T) => T,
-  defaultValue: T
-): () => void;
-export function createEffect<T>(
-  subscriber: (oldValue: T | undefined) => T,
-  defaultValue?: T
-) {
-  let lastComputedValue = defaultValue;
-
-  const effect = new Effect(() => {
-    lastComputedValue = subscriber(lastComputedValue);
-  });
-
-  effect.trigger();
-
-  return () => effect.dispose();
-}
-
-export function createMemo<T>(subscriber: (oldValue: T | undefined) => T) {
-  const [read, write] = createSignal<T>(undefined!);
-
-  createEffect<T>((previousValue) => {
-    const value = subscriber(previousValue);
-    write(value);
-    return value;
-  });
-
-  return read;
-}
-
-export function batch(transaction: () => void) {
-  new Context().run(transaction);
-}
+export { default as Store } from "../Store.js";
 
 export function createStore<T extends object>(
   target: T,
@@ -74,7 +13,7 @@ export function createStore<T extends object>(
 
   const context = new Context();
   const update = (v: DeepPartial<T>) => {
-    context.run(() => store.update(v));
+    Context.run(context, () => store.update(v));
   };
 
   return [store.proxy, update] as const;
@@ -86,7 +25,7 @@ export function createReactive<T extends object>(target: T) {
   const subscribers = new WeakMap<() => void, () => void>();
 
   const batchUpdate = (v: DeepPartial<T> | (() => void)) => {
-    context.run(() => {
+    Context.run(context, () => {
       if (typeof v === "function") {
         v();
       } else {

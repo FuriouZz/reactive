@@ -1,4 +1,4 @@
-import { createReactive } from "../lib/index.js";
+import { createReactive } from "../lib/entries/store.js";
 
 class Vector2 {
   x = 0;

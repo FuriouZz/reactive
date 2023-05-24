@@ -2,11 +2,12 @@ import {
   batch,
   createEffect,
   createMemo,
-  createSignal,
+  createRefSignal,
 } from "../lib/entries/index.js";
 
-test("createSignal()", () => {
-  const [message, setMessage] = createSignal("Hello World");
+test("createRefSignal()", () => {
+  const target = { message: "Hello World" };
+  const [message, setMessage] = createRefSignal(target, "message");
 
   const result1 = message();
   setMessage("¡Hola Pablo!");
@@ -14,12 +15,14 @@ test("createSignal()", () => {
 
   expect(result1).toBe("Hello World");
   expect(result2).toBe("¡Hola Pablo!");
+  expect(target.message).toBe("¡Hola Pablo!");
 });
 
 test("createEffect()", () => {
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
-  const [punctuation, setPunctuation] = createSignal("");
+  const target = { greeting: "Hello", who: "World", punctuation: "" };
+  const [greeting, setGreeting] = createRefSignal(target, "greeting");
+  const [who, setWho] = createRefSignal(target, "who");
+  const [punctuation, setPunctuation] = createRefSignal(target, "punctuation");
 
   const onChange = jest.fn();
 
@@ -41,9 +44,10 @@ test("createEffect()", () => {
 test("Update signal inside createEffect()", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
-  const [punctuation, setPunctuation] = createSignal("");
+  const target = { greeting: "Hello", who: "World", punctuation: "" };
+  const [greeting, setGreeting] = createRefSignal(target, "greeting");
+  const [who, setWho] = createRefSignal(target, "who");
+  const [punctuation, setPunctuation] = createRefSignal(target, "punctuation");
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
@@ -63,8 +67,9 @@ test("Update signal inside createEffect()", () => {
 test("batch() updates", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
+  const target = { greeting: "Hello", who: "World" };
+  const [greeting, setGreeting] = createRefSignal(target, "greeting");
+  const [who, setWho] = createRefSignal(target, "who");
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}`);
@@ -83,8 +88,9 @@ test("batch() updates", () => {
 test("createMemo()", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
+  const target = { greeting: "Hello", who: "World" };
+  const [greeting, setGreeting] = createRefSignal(target, "greeting");
+  const [who, setWho] = createRefSignal(target, "who");
 
   const message = createMemo(() => {
     const value = `${greeting()} ${who()}`;

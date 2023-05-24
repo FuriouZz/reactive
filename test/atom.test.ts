@@ -4,22 +4,26 @@ import {
   createMemo,
   createSignal,
 } from "../lib/entries/index.js";
+import { makeAtom } from "../lib/entries/atom.js";
 
-test("createSignal()", () => {
-  const [message, setMessage] = createSignal("Hello World");
+const createAtom = <T>(value: T) => {
+  return makeAtom(createSignal(value));
+};
+
+test("createAtom()", () => {
+  const message = createAtom("Hello World");
 
   const result1 = message();
-  setMessage("¡Hola Pablo!");
-  const result2 = message();
+  const result2 = message("¡Hola Pablo!");
 
   expect(result1).toBe("Hello World");
   expect(result2).toBe("¡Hola Pablo!");
 });
 
 test("createEffect()", () => {
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
-  const [punctuation, setPunctuation] = createSignal("");
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
+  const punctuation = createAtom("");
 
   const onChange = jest.fn();
 
@@ -27,9 +31,9 @@ test("createEffect()", () => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
   });
 
-  setPunctuation("!");
-  setWho("Pablo");
-  setGreeting("¡Hola");
+  punctuation("!");
+  who("Pablo");
+  greeting("¡Hola");
 
   expect(onChange).toHaveBeenCalledTimes(4);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
@@ -41,18 +45,18 @@ test("createEffect()", () => {
 test("Update signal inside createEffect()", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
-  const [punctuation, setPunctuation] = createSignal("");
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
+  const punctuation = createAtom("");
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
   });
 
   createEffect(() => {
-    setWho("Pablo");
-    setGreeting("¡Hola");
-    setPunctuation("!");
+    who("Pablo");
+    greeting("¡Hola");
+    punctuation("!");
   });
 
   expect(onChange).toHaveBeenCalledTimes(2);
@@ -63,16 +67,16 @@ test("Update signal inside createEffect()", () => {
 test("batch() updates", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}`);
   });
 
   batch(() => {
-    setGreeting("¡Hola");
-    setWho("Pablo!");
+    greeting("¡Hola");
+    who("Pablo!");
   });
 
   expect(onChange).toHaveBeenCalledTimes(2);
@@ -83,8 +87,8 @@ test("batch() updates", () => {
 test("createMemo()", () => {
   const onChange = jest.fn();
 
-  const [greeting, setGreeting] = createSignal("Hello");
-  const [who, setWho] = createSignal("World");
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
 
   const message = createMemo(() => {
     const value = `${greeting()} ${who()}`;
@@ -92,8 +96,8 @@ test("createMemo()", () => {
     return value;
   });
 
-  setWho("Pablo!");
-  setGreeting("¡Hola");
+  who("Pablo!");
+  greeting("¡Hola");
 
   const result = message();
   expect(result).toBe("¡Hola Pablo!");

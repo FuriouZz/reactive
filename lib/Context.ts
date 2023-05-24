@@ -1,38 +1,48 @@
+import generateID from "./generateID.js";
 import type { Subscriber } from "./types.js";
 
-let ID = 0;
-
+/**
+ * Context class defines an execution scope.
+ * It register all updates and subscribers at the end of the scope,
+ * except if inside the scope, context.apply() is called.
+ * Mainly used by batch(), createEffect() and createMemo() to reduce side effects calls
+ */
 export default class Context {
-  id: number;
-
+  id!: number;
   #updates: Subscriber[];
   #sideEffects: Set<Subscriber>;
 
   constructor() {
-    this.id = ++ID;
+    generateID(this);
     this.#updates = [];
     this.#sideEffects = new Set();
   }
 
+  /**
+   * Register update
+   * @param updates
+   */
   registerUpdate(...updates: Subscriber[]) {
     this.#updates.push(...updates);
   }
 
+  /**
+   * Register side effects registered during updates
+   * @param sideEffects
+   */
   registerEffect(...sideEffects: Subscriber[] | Subscriber[][]) {
     sideEffects.flat().forEach((s) => this.#sideEffects.add(s));
   }
 
-  run(scope: () => void) {
-    // Run scope
-    try {
-      Context.push(this);
-      scope();
-    } finally {
-      Context.pop();
-    }
+  /**
+   * Apply update and/or side effects
+   * @param action
+   */
+  apply(action?: "update" | "sideEffects") {
+    const applyAction = action ?? "update-sideEffects";
 
     // Execute updates
-    if (this.#updates.length > 0) {
+    if (applyAction.includes("update") && this.#updates.length > 0) {
       while (this.#updates.length > 0) {
         const update = this.#updates.shift();
         if (update) update();
@@ -40,7 +50,7 @@ export default class Context {
     }
 
     // Execute side effects
-    if (this.#sideEffects.size > 0) {
+    if (applyAction.includes("sideEffects") && this.#sideEffects.size > 0) {
       const sideEffects = [...this.#sideEffects];
       this.#sideEffects.clear();
       for (const sideEffect of sideEffects) {
@@ -61,5 +71,24 @@ export default class Context {
 
   static pop() {
     this.contexts.pop();
+  }
+
+  /**
+   * Run scope with the given context
+   * @param context
+   * @param scope
+   */
+  static run(
+    context: Context,
+    scope: (this: Context, context: Context) => void
+  ) {
+    try {
+      Context.push(context);
+      scope.call(context, context);
+    } finally {
+      Context.pop();
+    }
+
+    context.apply();
   }
 }

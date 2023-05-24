@@ -8,6 +8,8 @@ export interface SignalOptions<T> {
   equals?: boolean | ((a: T, b: T) => boolean);
 }
 
+export type SignalTuple<T> = [() => T, (value: T) => void];
+
 export interface Subscriber {
   (): void;
 }
