@@ -1,11 +1,12 @@
 import Context from "./Context.js";
-import type { Update } from "./types.js";
+import type { Subscriber } from "./types.js";
 
 export default class Effect {
-  trigger: Update;
+  trigger: Subscriber;
+
   #disposed: boolean;
 
-  constructor(effect: Update) {
+  constructor(effect: Subscriber) {
     this.#disposed = false;
     const context = new Context();
     this.trigger = () => {

@@ -3,9 +3,10 @@ import Effect from "./Effect.js";
 import { SignalOptions, Subscriber } from "./types.js";
 
 export default class Signal<T> {
+  subscribers: Set<Subscriber>;
+
   #value: T;
   #equals: boolean | ((a: T, b: T) => boolean);
-  subscribers: Set<Subscriber>;
 
   constructor(initialValue: T, options?: SignalOptions<T>) {
     this.#value = initialValue;

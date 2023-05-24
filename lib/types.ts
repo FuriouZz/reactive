@@ -1,5 +1,3 @@
-import type Store from "./Store.js";
-
 export type DeepPartial<T> = T extends object
   ? {
       [K in keyof T]?: DeepPartial<T[K]>;
@@ -7,18 +5,14 @@ export type DeepPartial<T> = T extends object
   : T;
 
 export interface SignalOptions<T> {
-  equals?: false | ((a: T, b: T) => boolean);
+  equals?: boolean | ((a: T, b: T) => boolean);
 }
 
 export interface Subscriber {
   (): void;
 }
 
-export interface Update {
-  (): void;
-}
-
-export interface StoreOptions {
+export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
   readonly?: boolean;
 }
 

@@ -68,7 +68,7 @@ export function batch(transaction: () => void) {
 
 export function createStore<T extends object>(
   target: T,
-  options?: StoreOptions
+  options?: StoreOptions<T>
 ) {
   const store = new Store(target, options);
 

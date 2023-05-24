@@ -5,14 +5,17 @@ import { StoreOptions, Subscriber } from "./types.js";
 export default class Store<T extends object> {
   target: T;
   proxy: T;
-  readonly: boolean;
-  #signals: Map<string | symbol, RefSignal<any, any>>;
-  #stores: Map<string | symbol, Store<object>>;
   subscribers: Set<Subscriber>;
 
-  constructor(target: T, options?: StoreOptions) {
+  #readonly: boolean;
+  #equals: boolean | ((a: any, b: any) => boolean);
+  #signals: Map<string | symbol, RefSignal<any, any>>;
+  #stores: Map<string | symbol, Store<object>>;
+
+  constructor(target: T, options?: StoreOptions<T>) {
     this.target = target;
-    this.readonly = options?.readonly ?? true;
+    this.#readonly = options?.readonly ?? true;
+    this.#equals = options?.equals ?? true;
     this.#signals = new Map();
     this.#stores = new Map();
     this.subscribers = new Set();
@@ -25,14 +28,14 @@ export default class Store<T extends object> {
         return this.has(key);
       },
       set: (_, key, newValue) => {
-        if (this.readonly) {
+        if (this.#readonly) {
           throw new TypeError(`"${String(key)}" is read-only`);
         }
         this.set(key, newValue);
         return true;
       },
       deleteProperty: (_, key) => {
-        if (this.readonly) {
+        if (this.#readonly) {
           throw new TypeError(`"${String(key)}" is read-only`);
         }
         this.set(key, undefined);
@@ -46,7 +49,10 @@ export default class Store<T extends object> {
     const value = signal.get();
 
     if (typeof value === "object" && value !== null && !this.#stores.has(key)) {
-      const store = new Store(value);
+      const store = new Store(value, {
+        readonly: this.#readonly,
+        equals: this.#equals,
+      });
       this.#stores.set(key, store);
     }
 
@@ -99,7 +105,9 @@ export default class Store<T extends object> {
 
   #findSignal(key: string | symbol) {
     if (!this.#signals.has(key)) {
-      const signal = new RefSignal(this.target, key as keyof T, this.proxy);
+      const signal = new RefSignal(this.target, key as keyof T, this.proxy, {
+        equals: this.#equals,
+      });
       this.#subscribe(signal);
       this.#signals.set(key, signal);
     }

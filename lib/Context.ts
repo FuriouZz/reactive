@@ -1,10 +1,11 @@
-import type { Subscriber, Update } from "./types.js";
+import type { Subscriber } from "./types.js";
 
 let ID = 0;
 
 export default class Context {
   id: number;
-  #updates: Update[];
+
+  #updates: Subscriber[];
   #sideEffects: Set<Subscriber>;
 
   constructor() {
@@ -13,7 +14,7 @@ export default class Context {
     this.#sideEffects = new Set();
   }
 
-  registerUpdate(...updates: Update[]) {
+  registerUpdate(...updates: Subscriber[]) {
     this.#updates.push(...updates);
   }
 
