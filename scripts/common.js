@@ -1,6 +1,6 @@
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
+import fs, { mkdirSync } from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,7 +12,7 @@ export const SPAWN_OPTIONS = { shell: true, stdio: "inherit" };
 /**
  *
  * @param {string} path
- * @returns
+ * @returns {boolean}
  */
 export const isDirectory = (path) => {
   try {
@@ -21,6 +21,16 @@ export const isDirectory = (path) => {
     // eslint-disable-next-line no-empty
   } catch (e) {}
   return false;
+};
+
+/**
+ *
+ * @param {string} path
+ */
+export const ensureDirectory = (path) => {
+  if (!isDirectory(path)) {
+    mkdirSync(path, { recursive: true });
+  }
 };
 
 export const cleanup = () => {

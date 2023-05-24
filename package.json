@@ -59,26 +59,6 @@
         "types": "./dist/atom.d.ts",
         "default": "./dist/cjs/atom.cjs"
       }
-    },
-    "./store": {
-      "import": {
-        "types": "./dist/store.d.ts",
-        "default": "./dist/esm/store.js"
-      },
-      "require": {
-        "types": "./dist/store.d.ts",
-        "default": "./dist/cjs/store.cjs"
-      }
-    },
-    "./store.js": {
-      "import": {
-        "types": "./dist/store.d.ts",
-        "default": "./dist/esm/store.js"
-      },
-      "require": {
-        "types": "./dist/store.d.ts",
-        "default": "./dist/cjs/store.cjs"
-      }
     }
   },
   "files": [

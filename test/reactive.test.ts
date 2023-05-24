@@ -1,5 +1,4 @@
-import { batch } from "../lib/entries/index.js";
-import { createReactive } from "../lib/entries/store.js";
+import { batch, createReactive } from "../lib/entries/index.js";
 
 class Vector2 {
   x = 0;
@@ -157,4 +156,20 @@ test("add/remove subscribers", () => {
   expect(onChange).toHaveBeenNthCalledWith(2, `10 10`);
   expect(onChange).toHaveBeenNthCalledWith(3, `20 10`);
   expect(onChange).toHaveBeenNthCalledWith(4, `20 20`);
+});
+
+test("batch updates", () => {
+  const onChange = jest.fn();
+
+  const state = createReactive({ message: "Hello World" });
+
+  state.$store.subscribers.add(onChange);
+
+  batch(() => {
+    state.message = "Bonjour François Dupont";
+    state.message = "¡Hola Pablo!";
+  });
+
+  expect(onChange).toHaveBeenCalledTimes(1);
+  expect(state.message).toEqual("¡Hola Pablo!");
 });
