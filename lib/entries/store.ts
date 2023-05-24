@@ -1,36 +1,62 @@
 import Context from "../Context.js";
 import Store from "../Store.js";
 import { createEffect } from "./index.js";
-import { StoreOptions, DeepPartial, ReactiveProxy } from "../types.js";
+import { DeepPartial, ReactiveProxy, SignalOptions } from "../types.js";
 
 export { default as Store } from "../Store.js";
 
+/**
+ * Create an immutable store
+ * @public
+ * @param target
+ * @param options
+ * @returns
+ */
 export function createStore<T extends object>(
   target: T,
-  options?: StoreOptions<T>
+  options?: SignalOptions<T[keyof T]>
 ) {
   const store = new Store(target, options);
 
   const context = new Context();
-  const update = (v: DeepPartial<T>) => {
-    Context.run(context, () => store.update(v));
+  const batchUpdate = (v: DeepPartial<T>) => {
+    Context.run(context, () => {
+      store.update(v);
+    });
   };
 
-  return [store.proxy, update] as const;
+  return [store.proxy, batchUpdate] as const;
 }
 
+/**
+ * Create a mutable store
+ * @public
+ * @param target
+ * @param options
+ * @returns
+ */
+export function createMutableStore<T extends object>(
+  target: T,
+  options?: SignalOptions<T[keyof T]>
+) {
+  const store = new Store(target, { ...options, readonly: false });
+  return store.proxy;
+}
+
+/**
+ * Wrap the given object into a store
+ * @public
+ * @param target
+ * @returns
+ */
 export function createReactive<T extends object>(target: T) {
   const store = new Store(target, { readonly: false });
   const context = new Context();
   const subscribers = new WeakMap<() => void, () => void>();
 
-  const batchUpdate = (v: DeepPartial<T> | (() => void)) => {
+  const batchUpdate = (v: DeepPartial<T>) => {
     Context.run(context, () => {
-      if (typeof v === "function") {
-        v();
-      } else {
-        store.update(v);
-      }
+      store.update(v);
     });
   };
 

@@ -1,5 +1,5 @@
 import { createEffect, createMemo } from "../lib/entries/index.js";
-import { createStore } from "../lib/entries/store.js";
+import { createMutableStore, createStore } from "../lib/entries/store.js";
 
 test("createStore()", () => {
   const [state, batchUpdate] = createStore({ message: "Hello World" });
@@ -17,6 +17,17 @@ test("createStore() is read-only by default", () => {
   expect(() => {
     state.message = "¡Hola Pablo!";
   }).toThrowError(TypeError);
+});
+
+test("createMutableStore()", () => {
+  const state = createMutableStore({ message: "Hello World" });
+
+  const result1 = state.message;
+  state.message = "¡Hola Pablo!";
+  const result2 = state.message;
+
+  expect(result1).toEqual("Hello World");
+  expect(result2).toEqual("¡Hola Pablo!");
 });
 
 test("createStore() with getter", () => {

@@ -1,6 +1,9 @@
-import Context from "./Context.js";
 import type { Subscriber } from "./types.js";
 
+/**
+ * This class tracks signal access, means a get() call, and subscribe to the signal
+ * @public
+ */
 export default class Effect {
   trigger: Subscriber;
 
@@ -8,20 +11,20 @@ export default class Effect {
 
   constructor(effect: Subscriber) {
     this.#disposed = false;
-    const context = new Context();
     this.trigger = () => {
-      Context.run(context, () => {
-        if (this.#disposed) return;
-        try {
-          Effect.push(this);
-          effect();
-        } finally {
-          Effect.pop();
-        }
-      });
+      if (this.#disposed) return;
+      try {
+        Effect.push(this);
+        effect();
+      } finally {
+        Effect.pop();
+      }
     };
   }
 
+  /**
+   * Stop listening signals
+   */
   dispose() {
     this.#disposed = true;
   }

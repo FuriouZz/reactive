@@ -1,6 +1,12 @@
 import type Signal from "../Signal.js";
 import type { SignalTuple } from "../types.js";
 
+/**
+ * Create a single function as getter/setter
+ * @public
+ * @param value
+ * @returns
+ */
 export function makeAtom<T>(value: Signal<T> | SignalTuple<T>) {
   const [get, set] = (() => {
     if (Array.isArray(value)) {

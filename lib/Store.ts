@@ -2,6 +2,12 @@ import RefSignal from "./RefSignal.js";
 import Signal from "./Signal.js";
 import { StoreOptions, Subscriber } from "./types.js";
 
+/**
+ * Wrap an object into a proxy and create a tree of signals
+ * By default, the store is immutable and you must call store.update().
+ * Signals and stores are created lazily
+ * @public
+ */
 export default class Store<T extends object> {
   target: T;
   proxy: T;

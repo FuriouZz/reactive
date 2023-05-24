@@ -59,9 +59,11 @@ test("Update signal inside createEffect()", () => {
     punctuation("!");
   });
 
-  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenCalledTimes(4);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
-  expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
+  expect(onChange).toHaveBeenNthCalledWith(2, "Hello Pablo");
+  expect(onChange).toHaveBeenNthCalledWith(3, "¡Hola Pablo");
+  expect(onChange).toHaveBeenNthCalledWith(4, "¡Hola Pablo!");
 });
 
 test("batch() updates", () => {
@@ -82,28 +84,4 @@ test("batch() updates", () => {
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
   expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
-});
-
-test("createMemo()", () => {
-  const onChange = jest.fn();
-
-  const greeting = createAtom("Hello");
-  const who = createAtom("World");
-
-  const message = createMemo(() => {
-    const value = `${greeting()} ${who()}`;
-    onChange(value);
-    return value;
-  });
-
-  who("Pablo!");
-  greeting("¡Hola");
-
-  const result = message();
-  expect(result).toBe("¡Hola Pablo!");
-
-  expect(onChange).toHaveBeenCalledTimes(3);
-  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
-  expect(onChange).toHaveBeenNthCalledWith(2, "Hello Pablo!");
-  expect(onChange).toHaveBeenNthCalledWith(3, "¡Hola Pablo!");
 });

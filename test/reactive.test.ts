@@ -1,3 +1,4 @@
+import { batch } from "../lib/entries/index.js";
 import { createReactive } from "../lib/entries/store.js";
 
 class Vector2 {
@@ -38,25 +39,38 @@ test("createReactive()", () => {
   expect(onChange).toHaveBeenNthCalledWith(7, `30 30`);
 });
 
-test("createReactive() + batch()", () => {
+test("createEffect()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect, batchUpdate } = vec2.$store;
+  const { createEffect } = vec2.$store;
 
   createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
   });
 
-  batchUpdate(() => {
+  expect(onChange).toHaveBeenCalledTimes(1);
+  expect(onChange).toHaveBeenNthCalledWith(1, `0 0`);
+});
+
+test("batchUpdate()", () => {
+  const onChange = jest.fn();
+  const vec2 = createReactive(new Vector2());
+  const { createEffect } = vec2.$store;
+
+  createEffect(() => {
+    onChange(`${vec2.x} ${vec2.y}`);
+  });
+
+  batch(() => {
     vec2.x = 10;
     vec2.y = 10;
   });
 
-  batchUpdate(() => {
+  batch(() => {
     vec2.set(20, 20);
   });
 
-  batchUpdate(() => {
+  batch(() => {
     vec2.setScalar(30);
   });
 
@@ -67,7 +81,7 @@ test("createReactive() + batch()", () => {
   expect(onChange).toHaveBeenNthCalledWith(4, `30 30`);
 });
 
-test("createReactive() + $update()", () => {
+test("batchUpdate() (2)", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
   const { createEffect, batchUpdate } = vec2.$store;
@@ -78,10 +92,10 @@ test("createReactive() + $update()", () => {
 
   batchUpdate({ x: 45 });
   batchUpdate({ y: 15 });
-  batchUpdate(() => {
-    const y = vec2.x / 2;
-    const x = y * 1.5;
-    vec2.set(x, y);
+  batch(({ apply }) => {
+    vec2.y = vec2.x / 2;
+    apply("update"); // force vec2.y to be updated
+    vec2.x = vec2.y * 1.5;
   });
 
   expect(onChange).toHaveBeenCalledTimes(4);
@@ -91,7 +105,7 @@ test("createReactive() + $update()", () => {
   expect(onChange).toHaveBeenNthCalledWith(4, `33.75 22.5`);
 });
 
-test("createReactive() + $on()", () => {
+test("dispose createEffect()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
   const { createEffect, batchUpdate } = vec2.$store;
@@ -108,7 +122,7 @@ test("createReactive() + $on()", () => {
   expect(onChange).toHaveBeenCalledTimes(3);
 });
 
-test("createReactive() + $on() + $off()", () => {
+test("disposeEffect()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
   const { createEffect, disposeEffect, batchUpdate } = vec2.$store;
@@ -125,7 +139,7 @@ test("createReactive() + $on() + $off()", () => {
   expect(onChange).toHaveBeenCalledTimes(3);
 });
 
-test("createReactive() + $change", () => {
+test("add/remove subscribers", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
   const { subscribers } = vec2.$store;

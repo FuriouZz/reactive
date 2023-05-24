@@ -4,10 +4,17 @@ export type DeepPartial<T> = T extends object
     }
   : T;
 
+/**
+ * @public
+ */
 export interface SignalOptions<T> {
   equals?: boolean | ((a: T, b: T) => boolean);
 }
 
+/**
+ * Signal read and write functions
+ * @public
+ */
 export type SignalTuple<T> = [() => T, (value: T) => void];
 
 export interface Subscriber {
@@ -21,7 +28,7 @@ export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
 export type ReactiveProxy<T extends object> = T & {
   $store: {
     subscribers: Set<Subscriber>;
-    batchUpdate(state: DeepPartial<T> | (() => void)): void;
+    batchUpdate(state: DeepPartial<T>): void;
     createEffect(subscriber: () => void): () => void;
     disposeEffect(subscriber: () => void): void;
   };

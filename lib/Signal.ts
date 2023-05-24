@@ -3,10 +3,10 @@ import Effect from "./Effect.js";
 import { SignalOptions, Subscriber } from "./types.js";
 
 /**
- * @public
  * Create a signal object with a get and a set method
  * A signal is an object with subscribers called at each changes
  * If changes are done inside a Context, there are executed after Context's scope
+ * @public
  */
 export default class Signal<T> {
   subscribers: Set<Subscriber>;

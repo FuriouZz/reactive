@@ -3,9 +3,11 @@ import type { Subscriber } from "./types.js";
 
 /**
  * Context class defines an execution scope.
- * It register all updates and subscribers at the end of the scope,
- * except if inside the scope, context.apply() is called.
- * Mainly used by batch(), createEffect() and createMemo() to reduce side effects calls
+ * It registers updates and execute them at the end of the scope and execute side effects.
+ * The context is given as parameter, so you can apply updates and sideEffects
+ * inside the scope with context.apply()
+ * Mainly used to reduce side effects calls
+ * @public
  */
 export default class Context {
   id!: number;
@@ -22,23 +24,23 @@ export default class Context {
    * Register update
    * @param updates
    */
-  registerUpdate(...updates: Subscriber[]) {
+  registerUpdate = (...updates: Subscriber[]) => {
     this.#updates.push(...updates);
-  }
+  };
 
   /**
    * Register side effects registered during updates
    * @param sideEffects
    */
-  registerEffect(...sideEffects: Subscriber[] | Subscriber[][]) {
+  registerEffect = (...sideEffects: Subscriber[] | Subscriber[][]) => {
     sideEffects.flat().forEach((s) => this.#sideEffects.add(s));
-  }
+  };
 
   /**
    * Apply update and/or side effects
    * @param action
    */
-  apply(action?: "update" | "sideEffects") {
+  apply = (action?: "update" | "sideEffects") => {
     const applyAction = action ?? "update-sideEffects";
 
     // Execute updates
@@ -57,7 +59,7 @@ export default class Context {
         sideEffect();
       }
     }
-  }
+  };
 
   static get Current(): Context | undefined {
     return this.contexts[this.contexts.length - 1];
