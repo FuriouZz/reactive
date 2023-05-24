@@ -1,5 +1,7 @@
 # Reactive <!-- omit in toc -->
 
+Exploration of reactivity with API similar to [SolidJS](https://www.solidjs.com/)
+
 - [Examples](#examples)
 - [Atom](#atom)
 - [Store](#store)
