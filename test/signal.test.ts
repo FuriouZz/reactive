@@ -1,205 +1,116 @@
 import {
-  createSignal,
+  batch,
+  createAtom,
   createEffect,
   createMemo,
-  createWriteStream,
-  atom,
-  observable,
-} from "../lib/signal";
+  createSignal,
+} from "../lib/index.js";
 
-test("signal", () => {
-  const onChangeTrigger = jest.fn();
+test("createSignal()", () => {
+  const [message, setMessage] = createSignal("Hello World");
 
-  const [count, setCount] = createSignal(0);
-  createEffect(() => {
-    onChangeTrigger(count());
-  });
+  const result1 = message();
+  setMessage("¡Hola Pablo!");
+  const result2 = message();
 
-  setCount(1);
-  setCount(count() + 1);
-  setCount(count() + 1);
-  setCount(count() + 1);
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 2);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 4);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(5);
+  expect(result1).toBe("Hello World");
+  expect(result2).toBe("¡Hola Pablo!");
 });
 
-test("signal computed", () => {
-  const onChangeTrigger = jest.fn();
+test("createAtom()", () => {
+  const message = createAtom("Hello World");
 
-  const [count, setCount] = createSignal(0);
-  const result = () => count() * 2;
+  const result1 = message();
+  const result2 = message("¡Hola Pablo!");
 
-  createEffect(() => {
-    onChangeTrigger(result());
-  });
-
-  setCount(1);
-  setCount(count() + 1);
-  setCount(count() + 1);
-  setCount(count() + 1);
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 2);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 4);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 6);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 8);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(5);
+  expect(result1).toBe("Hello World");
+  expect(result2).toBe("¡Hola Pablo!");
 });
 
-test("signal previous value", () => {
-  const onChangeTrigger = jest.fn();
+test("createEffect()", () => {
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
+  const punctuation = createAtom("");
 
-  const [count, setCount] = createSignal(0);
-
-  createEffect((previousValue) => {
-    const res = count() + previousValue;
-    onChangeTrigger(res);
-    return res;
-  }, 0);
-
-  setCount(1);
-  setCount(2);
-  setCount(3);
-  setCount(4);
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 6);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 10);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(5);
-});
-
-test("signal memo", () => {
-  const onChangeTrigger = jest.fn();
-
-  const [count, setCount] = createSignal(0);
-  const result = createMemo(() => count() * 2);
+  const onChange = jest.fn();
 
   createEffect(() => {
-    onChangeTrigger(result());
+    onChange(`${greeting()} ${who()}${punctuation()}`);
   });
 
-  setCount(1);
-  setCount(count() + 1);
-  setCount(count() + 1);
-  setCount(count() + 1);
+  punctuation("!");
+  who("Pablo");
+  greeting("¡Hola");
 
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 2);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 4);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 6);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(5, 8);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(5);
+  expect(onChange).toHaveBeenCalledTimes(4);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "Hello World!");
+  expect(onChange).toHaveBeenNthCalledWith(3, "Hello Pablo!");
+  expect(onChange).toHaveBeenNthCalledWith(4, "¡Hola Pablo!");
 });
 
-test("signal pipe", () => {
-  const count = createWriteStream(0);
-  const result = count
-    .pipe((source: number) => source * 2)
-    .pipe((source) => source + 3);
+test("Update signal inside createEffect()", () => {
+  const onChange = jest.fn();
 
-  expect(result.read()).toBe(3);
-
-  count.write(2);
-
-  expect(result.read()).toBe(7);
-});
-
-test("signal pipe individually", () => {
-  const count = createWriteStream(0);
-  const multiply = count.pipe((source: number) => source * 2);
-  const add = multiply.pipe((source) => source + 3);
-
-  expect(multiply.read()).toBe(0);
-  expect(add.read()).toBe(3);
-
-  count.write(2);
-
-  expect(multiply.read()).toBe(4);
-  expect(add.read()).toBe(7);
-});
-
-test("signal listen pipe individually", () => {
-  const onChangeTrigger = jest.fn();
-
-  const count = createWriteStream(0);
-  const multiply = count.pipe((source: number) => source * 2);
-  const add = multiply.pipe((source) => source + 3);
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
+  const punctuation = createAtom("");
 
   createEffect(() => {
-    onChangeTrigger(multiply.read(), add.read());
+    onChange(`${greeting()} ${who()}${punctuation()}`);
   });
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0, 3);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(1);
-
-  count.write(2);
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 4, 7);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 4, 7);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(3);
-});
-
-test("signal pipe individually", () => {
-  const onChangeTrigger = jest.fn();
-
-  const count = createWriteStream(0);
-  const multiply = count.pipe((source: number) => source * 2);
-  const add = count.pipe((source) => source + 3);
 
   createEffect(() => {
-    onChangeTrigger(multiply.read(), add.read());
+    who("Pablo");
+    greeting("¡Hola");
+    punctuation("!");
   });
 
-  count.write(2);
-
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 4, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 4, 5);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(3);
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
 });
 
-test("signal atom", () => {
-  const onChangeTrigger = jest.fn();
+test("batch() updates", () => {
+  const onChange = jest.fn();
 
-  const count = atom(0);
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
 
   createEffect(() => {
-    onChangeTrigger(count());
+    onChange(`${greeting()} ${who()}`);
   });
 
-  count(1);
-  count(3);
-  count(5);
+  batch(() => {
+    greeting("¡Hola");
+    who("Pablo!");
+  });
 
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(4, 5);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(4);
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
 });
 
-test("signal observable", () => {
-  const onChangeTrigger = jest.fn();
+test("createMemo()", () => {
+  const onChange = jest.fn();
 
-  const count = observable(0);
+  const greeting = createAtom("Hello");
+  const who = createAtom("World");
 
-  count.subscribe((newValue, oldValue) => {
-    onChangeTrigger(oldValue, newValue);
+  const message = createMemo(() => {
+    const value = `${greeting()} ${who()}`;
+    onChange(value);
+    return value;
   });
 
-  count(1);
-  count(3);
-  count(5);
+  who("Pablo!");
+  greeting("¡Hola");
 
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(1, 0, 1);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(2, 1, 3);
-  expect(onChangeTrigger).toHaveBeenNthCalledWith(3, 3, 5);
-  expect(onChangeTrigger).toHaveBeenCalledTimes(3);
+  const result = message();
+  expect(result).toBe("¡Hola Pablo!");
+
+  expect(onChange).toHaveBeenCalledTimes(3);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "Hello Pablo!");
+  expect(onChange).toHaveBeenNthCalledWith(3, "¡Hola Pablo!");
 });

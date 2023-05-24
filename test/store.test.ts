@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createStore } from "../../lib/reactive2";
+import { createEffect, createMemo, createStore } from "../lib/index.js";
 
 test("createStore()", () => {
   const [state, batchUpdate] = createStore({ message: "Hello World" });
