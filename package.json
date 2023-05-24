@@ -4,12 +4,16 @@
   "version": "0.2.1",
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "devDependencies": {
+    "@furiouzz/lol": "^0.0.36",
     "@microsoft/api-extractor": "^7.35.0",
-    "@types/fs-extra": "^11.0.1",
     "@types/jest": "^29.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
     "esbuild": "^0.17.19",
-    "fs-extra": "^11.1.1",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "8.8.0",
     "jest": "^29.5.0",
+    "prettier": "^2.8.7",
     "semver": "^7.5.1",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
@@ -23,27 +27,57 @@
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "default": "./dist/cjs/index.cjs"
       }
     },
-    "./reactive": {
+    "./index.js": {
       "import": {
-        "types": "./dist/reactive.d.ts",
-        "default": "./dist/esm/reactive.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
       },
       "require": {
-        "types": "./dist/reactive.d.ts",
-        "default": "./dist/cjs/reactive.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
       }
     },
-    "./signal": {
+    "./atom": {
       "import": {
-        "types": "./dist/signal.d.ts",
-        "default": "./dist/esm/signal.js"
+        "types": "./dist/atom.d.ts",
+        "default": "./dist/esm/atom.js"
       },
       "require": {
-        "types": "./dist/signal.d.ts",
-        "default": "./dist/cjs/signal.js"
+        "types": "./dist/atom.d.ts",
+        "default": "./dist/cjs/atom.cjs"
+      }
+    },
+    "./atom.js": {
+      "import": {
+        "types": "./dist/atom.d.ts",
+        "default": "./dist/esm/atom.js"
+      },
+      "require": {
+        "types": "./dist/atom.d.ts",
+        "default": "./dist/cjs/atom.cjs"
+      }
+    },
+    "./store": {
+      "import": {
+        "types": "./dist/store.d.ts",
+        "default": "./dist/esm/store.js"
+      },
+      "require": {
+        "types": "./dist/store.d.ts",
+        "default": "./dist/cjs/store.cjs"
+      }
+    },
+    "./store.js": {
+      "import": {
+        "types": "./dist/store.d.ts",
+        "default": "./dist/esm/store.js"
+      },
+      "require": {
+        "types": "./dist/store.d.ts",
+        "default": "./dist/cjs/store.cjs"
       }
     }
   },
@@ -64,6 +98,8 @@
     "build": "node scripts/build",
     "bump": "node scripts/bump",
     "dev": "node scripts/dev --watch",
+    "lint": "eslint ./lib",
+    "format": "prettier --ignore-path \"./eslintignore\" --write ./lib",
     "test": "jest --config jest.config.ts"
   },
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
-  "mainEntryPointFilePath": "<projectFolder>/build/index.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/build/entries/index.d.ts",
   "bundledPackages": [],
   "compiler": {},
   "apiReport": {
@@ -30,7 +30,7 @@
     },
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
       }
     }
   }

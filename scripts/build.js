@@ -13,17 +13,32 @@ const rootDir = join(__dirname, "../");
  *
  * @param {string} input
  * @param {string} output
+ * @param {"cjs"|"esm"} format
+ */
+function build(input, output, format) {
+  const build = "npx esbuild --bundle --target=es6 " + input;
+  const extension = format === "cjs" ? "cjs" : "js";
+  const type = format === "cjs" ? "commonjs" : "module";
+
+  spawnSync(
+    `${build} --format=${format} --outfile=dist/${format}/${output}.${extension}`,
+    SPAWN_OPTIONS
+  );
+
+  writeFileSync(
+    `./dist/${format}/package.json`,
+    JSON.stringify({ type }, null, 2)
+  );
+}
+
+/**
+ *
+ * @param {string} input
+ * @param {string} output
  */
 function compile(input, output) {
-  const build = "npx esbuild --bundle --target=es6 " + input;
-  spawnSync(
-    `${build} --format=cjs --outfile=dist/cjs/${output}.js`,
-    SPAWN_OPTIONS
-  );
-  spawnSync(
-    `${build} --format=esm --outfile=dist/esm/${output}.js`,
-    SPAWN_OPTIONS
-  );
+  build(input, output, "cjs");
+  build(input, output, "esm");
 
   const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
   const extractorConfig =
@@ -34,7 +49,7 @@ function compile(input, output) {
   extractorConfig.untrimmedFilePath = join(rootDir, "dist", `${output}.d.ts`);
   extractorConfig.reportFilePath = join(rootDir, "temp", `${output}.md`);
 
-  const extractorResult = Extractor.invoke(extractorConfig, {
+  Extractor.invoke(extractorConfig, {
     localBuild: true,
     showVerboseMessages: true,
   });
@@ -42,29 +57,10 @@ function compile(input, output) {
 
 async function main() {
   await import("./dev.js");
-
-  compile("lib/index.ts", "index");
-
-  writeFileSync(
-    "./dist/cjs/package.json",
-    JSON.stringify({ type: "commonjs" }, null, 2)
-  );
-
-  writeFileSync(
-    "./dist/esm/package.json",
-    JSON.stringify({ type: "module" }, null, 2)
-  );
-
-  // const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
-  // const extractorConfig =
-  //   ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
-
-  // console.log(extractorConfig.mainEntryPointFilePath);
-
-  // const extractorResult = Extractor.invoke(extractorConfig, {
-  //   localBuild: true,
-  //   showVerboseMessages: true,
-  // });
+  compile("lib/entries/index.ts", "index");
+  compile("lib/entries/atom.ts", "atom");
+  compile("lib/entries/store.ts", "store");
+  await import("./validate-package.js");
 }
 
 main();
