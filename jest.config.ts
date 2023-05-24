@@ -1,5 +1,6 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-export default {
+import { JestConfigWithTsJest } from "ts-jest";
+
+const config: JestConfigWithTsJest = {
   testEnvironment: "node",
   rootDir: "./test",
   extensionsToTreatAsEsm: [".ts"],
@@ -15,3 +16,5 @@ export default {
     ],
   },
 };
+
+export default config;

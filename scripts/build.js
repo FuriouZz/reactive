@@ -1,7 +1,7 @@
 import { Extractor, ExtractorConfig } from "@microsoft/api-extractor";
 import { spawnSync } from "child_process";
 import { writeFileSync } from "fs";
-import { basename, dirname, join, resolve } from "path";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { ROOT_DIR, SPAWN_OPTIONS } from "./common.js";
 
@@ -44,8 +44,6 @@ async function main() {
   await import("./dev.js");
 
   compile("lib/index.ts", "index");
-  compile("lib/reactive/index.ts", "reactive");
-  compile("lib/signal/index.ts", "signal");
 
   writeFileSync(
     "./dist/cjs/package.json",
