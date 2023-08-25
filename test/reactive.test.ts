@@ -1,4 +1,4 @@
-import { batch, createReactive } from "../lib/entries/index.js";
+import { batch, createEffect, createReactive } from "../lib/entries/index.js";
 
 class Vector2 {
   x = 0;
@@ -17,7 +17,6 @@ class Vector2 {
 test("createReactive()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect } = vec2.$store;
 
   createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
@@ -41,7 +40,6 @@ test("createReactive()", () => {
 test("createEffect()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect } = vec2.$store;
 
   createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
@@ -54,7 +52,6 @@ test("createEffect()", () => {
 test("batchUpdate()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect } = vec2.$store;
 
   createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
@@ -83,7 +80,7 @@ test("batchUpdate()", () => {
 test("batchUpdate() (2)", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect, batchUpdate } = vec2.$store;
+  const { batchUpdate } = vec2.$store;
 
   createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
@@ -107,7 +104,7 @@ test("batchUpdate() (2)", () => {
 test("dispose createEffect()", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { createEffect, batchUpdate } = vec2.$store;
+  const { batchUpdate } = vec2.$store;
 
   const unsubscribe = createEffect(() => {
     onChange(`${vec2.x} ${vec2.y}`);
@@ -116,23 +113,6 @@ test("dispose createEffect()", () => {
   batchUpdate({ x: 10, y: 10 });
   batchUpdate({ x: 20, y: 20 });
   unsubscribe();
-  batchUpdate({ x: 30, y: 30 });
-
-  expect(onChange).toHaveBeenCalledTimes(3);
-});
-
-test("disposeEffect()", () => {
-  const onChange = jest.fn();
-  const vec2 = createReactive(new Vector2());
-  const { createEffect, disposeEffect, batchUpdate } = vec2.$store;
-
-  const subscriber = () => onChange(`${vec2.x} ${vec2.y}`);
-
-  createEffect(subscriber);
-
-  batchUpdate({ x: 10, y: 10 });
-  batchUpdate({ x: 20, y: 20 });
-  disposeEffect(subscriber);
   batchUpdate({ x: 30, y: 30 });
 
   expect(onChange).toHaveBeenCalledTimes(3);
@@ -172,4 +152,22 @@ test("batch updates", () => {
 
   expect(onChange).toHaveBeenCalledTimes(1);
   expect(state.message).toEqual("¡Hola Pablo!");
+});
+
+test("batch updates for two values", () => {
+  const onChange = jest.fn();
+
+  const state = createReactive({ x: 0, y: 0 });
+
+  state.$store.subscribers.add(onChange);
+
+  batch(({ apply }) => {
+    state.x = 10;
+    state.y = 10;
+    apply("update");
+    state.x += 10;
+  });
+
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(`${state.x} ${state.y}`).toEqual("20 10");
 });

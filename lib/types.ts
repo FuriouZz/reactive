@@ -23,13 +23,12 @@ export interface Subscriber {
 
 export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
   readonly?: boolean;
+  deep?: boolean;
 }
 
 export type ReactiveProxy<T extends object> = T & {
   $store: {
     subscribers: Set<Subscriber>;
     batchUpdate(state: DeepPartial<T>): void;
-    createEffect(subscriber: () => void): () => void;
-    disposeEffect(subscriber: () => void): void;
   };
 };

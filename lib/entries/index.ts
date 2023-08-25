@@ -162,25 +162,9 @@ export function createMutableStore<T extends object>(
 export function createReactive<T extends object>(target: T) {
   const store = new Store(target, { readonly: false });
   const context = new Context();
-  const subscribers = new WeakMap<() => void, () => void>();
 
   const batchUpdate = (v: DeepPartial<T>) => {
-    Context.run(context, () => {
-      store.update(v);
-    });
-  };
-
-  const on = (subscriber: () => void) => {
-    const unsubscribe = createEffect(subscriber);
-    subscribers.set(subscriber, unsubscribe);
-    return unsubscribe;
-  };
-
-  const off = (subscriber: () => void) => {
-    if (subscribers.has(subscriber)) {
-      const unsubscribe = subscribers.get(subscriber)!;
-      unsubscribe();
-    }
+    Context.run(context, () => store.update(v));
   };
 
   const $store = {
@@ -188,8 +172,6 @@ export function createReactive<T extends object>(target: T) {
       return store.subscribers;
     },
     batchUpdate: batchUpdate,
-    createEffect: on,
-    disposeEffect: off,
   };
 
   const expose = new Map<string | symbol, any>();
