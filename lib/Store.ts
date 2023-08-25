@@ -15,6 +15,7 @@ export default class Store<T extends object> {
 
   #readonly: boolean;
   #equals: boolean | ((a: any, b: any) => boolean);
+  #deep: boolean;
   #signals: Map<string | symbol, RefSignal<any, any>>;
   #stores: Map<string | symbol, Store<object>>;
 
@@ -22,6 +23,7 @@ export default class Store<T extends object> {
     this.target = target;
     this.#readonly = options?.readonly ?? true;
     this.#equals = options?.equals ?? true;
+    this.#deep = options?.deep ?? true;
     this.#signals = new Map();
     this.#stores = new Map();
     this.subscribers = new Set();
@@ -54,7 +56,12 @@ export default class Store<T extends object> {
     const signal = this.#findSignal(key)!;
     const value = signal.get();
 
-    if (typeof value === "object" && value !== null && !this.#stores.has(key)) {
+    if (
+      this.#deep &&
+      typeof value === "object" &&
+      value !== null &&
+      !this.#stores.has(key)
+    ) {
       const store = new Store(value, {
         readonly: this.#readonly,
         equals: this.#equals,

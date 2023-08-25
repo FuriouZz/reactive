@@ -159,8 +159,11 @@ export function createMutableStore<T extends object>(
  * @param target
  * @returns
  */
-export function createReactive<T extends object>(target: T) {
-  const store = new Store(target, { readonly: false });
+export function createReactive<T extends object>(
+  target: T,
+  options?: { deep?: boolean }
+) {
+  const store = new Store(target, { readonly: false, deep: options?.deep });
   const context = new Context();
 
   const batchUpdate = (v: DeepPartial<T>) => {
