@@ -171,9 +171,6 @@ export function createReactive<T extends object>(
   };
 
   const $store = {
-    get subscribers() {
-      return store.subscribers;
-    },
     batchUpdate: batchUpdate,
   };
 

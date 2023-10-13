@@ -1,6 +1,5 @@
 import RefSignal from "./RefSignal.js";
-import Signal from "./Signal.js";
-import { StoreOptions, Subscriber } from "./types.js";
+import { StoreOptions } from "./types.js";
 
 /**
  * Wrap an object into a proxy and create a tree of signals
@@ -11,7 +10,6 @@ import { StoreOptions, Subscriber } from "./types.js";
 export default class Store<T extends object> {
   target: T;
   proxy: T;
-  subscribers: Set<Subscriber>;
 
   #readonly: boolean;
   #equals: boolean | ((a: any, b: any) => boolean);
@@ -26,7 +24,6 @@ export default class Store<T extends object> {
     this.#deep = options?.deep ?? true;
     this.#signals = new Map();
     this.#stores = new Map();
-    this.subscribers = new Set();
 
     this.proxy = new Proxy(this.target, {
       get: (_, key) => {
@@ -108,20 +105,11 @@ export default class Store<T extends object> {
     }
   }
 
-  #subscribe(signal: Signal<any>) {
-    const subscriber = () => {
-      this.subscribers.forEach((effect) => effect());
-      signal.subscribers.add(subscriber);
-    };
-    signal.subscribers.add(subscriber);
-  }
-
   #findSignal(key: string | symbol) {
     if (!this.#signals.has(key)) {
       const signal = new RefSignal(this.target, key as keyof T, this.proxy, {
         equals: this.#equals,
       });
-      this.#subscribe(signal);
       this.#signals.set(key, signal);
     }
 

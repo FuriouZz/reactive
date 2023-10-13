@@ -28,7 +28,6 @@ export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
 
 export type ReactiveProxy<T extends object> = T & {
   $store: {
-    subscribers: Set<Subscriber>;
     batchUpdate(state: DeepPartial<T>): void;
   };
 };

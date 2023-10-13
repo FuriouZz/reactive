@@ -121,21 +121,20 @@ test("dispose createEffect()", () => {
 test("add/remove subscribers", () => {
   const onChange = jest.fn();
   const vec2 = createReactive(new Vector2());
-  const { subscribers } = vec2.$store;
 
-  const subscriber = () => onChange(`${vec2.x} ${vec2.y}`);
-  subscribers.add(subscriber);
+  const unsubscribe = createEffect(() => onChange(`${vec2.x} ${vec2.y}`));
 
   vec2.set(10, 10);
   vec2.setScalar(20);
-  subscribers.delete(subscriber);
+  unsubscribe();
   vec2.setScalar(30);
 
-  expect(onChange).toHaveBeenCalledTimes(4);
-  expect(onChange).toHaveBeenNthCalledWith(1, `10 0`);
-  expect(onChange).toHaveBeenNthCalledWith(2, `10 10`);
-  expect(onChange).toHaveBeenNthCalledWith(3, `20 10`);
-  expect(onChange).toHaveBeenNthCalledWith(4, `20 20`);
+  expect(onChange).toHaveBeenCalledTimes(5);
+  expect(onChange).toHaveBeenNthCalledWith(1, `0 0`);
+  expect(onChange).toHaveBeenNthCalledWith(2, `10 0`);
+  expect(onChange).toHaveBeenNthCalledWith(3, `10 10`);
+  expect(onChange).toHaveBeenNthCalledWith(4, `20 10`);
+  expect(onChange).toHaveBeenNthCalledWith(5, `20 20`);
 });
 
 test("batch updates", () => {
@@ -143,14 +142,17 @@ test("batch updates", () => {
 
   const state = createReactive({ message: "Hello World" });
 
-  state.$store.subscribers.add(onChange);
+  createEffect(() => {
+    state.message;
+    onChange();
+  });
 
   batch(() => {
     state.message = "Bonjour François Dupont";
     state.message = "¡Hola Pablo!";
   })();
 
-  expect(onChange).toHaveBeenCalledTimes(1);
+  expect(onChange).toHaveBeenCalledTimes(2);
   expect(state.message).toEqual("¡Hola Pablo!");
 });
 
@@ -159,7 +161,10 @@ test("batch updates for two values", () => {
 
   const state = createReactive({ x: 0, y: 0 });
 
-  state.$store.subscribers.add(onChange);
+  createEffect(() => {
+    state.x, state.y;
+    onChange();
+  });
 
   batch(({ apply }) => {
     state.x = 10;
