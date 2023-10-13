@@ -88,9 +88,9 @@ test("batchUpdate() (2)", () => {
 
   batchUpdate({ x: 45 });
   batchUpdate({ y: 15 });
-  batch(({ apply }) => {
+  batch(({ trigger }) => {
     vec2.y = vec2.x / 2;
-    apply("update"); // force vec2.y to be updated
+    trigger("update"); // force vec2.y to be updated
     vec2.x = vec2.y * 1.5;
   })();
 
@@ -166,7 +166,7 @@ test("batch updates for two values", () => {
     onChange();
   });
 
-  batch(({ apply }) => {
+  batch(({ trigger: apply }) => {
     state.x = 10;
     state.y = 10;
     apply("update");

@@ -1,16 +1,16 @@
 import Effect from "./Effect.js";
 import generateID from "./generateID.js";
-import type { Callable } from "./types.js";
+import type { Callable, ExposedScope } from "./types.js";
 
 /**
- * Context class defines an execution scope.
+ * Scope class defines an execution scope.
  * It registers updates and execute them at the end of the scope and execute side effects.
- * The context is given as parameter, so you can apply updates and sideEffects
- * inside the scope with context.apply()
+ * The scope object is given as parameter, so you can apply updates and sideEffects
+ * inside the scope with scope.trigger()
  * Mainly used to reduce side effects calls
  * @public
  */
-export default class Context {
+export default class Scope {
   id!: number;
   #updates: Callable[];
   #sideEffects: Set<Effect>;
@@ -41,7 +41,7 @@ export default class Context {
    * Apply update and/or side effects
    * @param action
    */
-  apply = (action?: "update" | "sideEffects") => {
+  trigger = (action?: "update" | "sideEffects") => {
     const applyAction = action ?? "update-sideEffects";
 
     // Execute updates
@@ -62,13 +62,13 @@ export default class Context {
     }
   };
 
-  static get Current(): Context | undefined {
+  static get Current(): Scope | undefined {
     return this.contexts[this.contexts.length - 1];
   }
 
-  static contexts: Context[] = [];
+  static contexts: Scope[] = [];
 
-  static push(context: Context) {
+  static push(context: Scope) {
     this.contexts.push(context);
   }
 
@@ -78,20 +78,23 @@ export default class Context {
 
   /**
    * Run scope with the given context
-   * @param context
+   * @param scope
    * @param scope
    */
   static run(
-    context: Context,
-    scope: (this: Context, context: Context) => void
+    scope: Scope,
+    callback: (this: ExposedScope, context: ExposedScope) => void
   ) {
     try {
-      Context.push(context);
-      scope.call(context, context);
+      Scope.push(scope);
+      const exposed = {
+        trigger: (action?: "update" | "sideEffects") => scope.trigger(action),
+      };
+      callback.call(exposed, exposed);
     } finally {
-      Context.pop();
+      Scope.pop();
     }
 
-    context.apply();
+    scope.trigger();
   }
 }

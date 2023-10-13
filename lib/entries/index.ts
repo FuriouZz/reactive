@@ -2,17 +2,18 @@ import Effect from "../Effect.js";
 import Signal from "../Signal.js";
 import type {
   DeepPartial,
+  ExposedScope,
   ReactiveProxy,
   SignalOptions,
   SignalTuple,
 } from "../types.js";
-import Context from "../Context.js";
+import Scope from "../Scope.js";
 import RefSignal from "../RefSignal.js";
 import Store from "../Store.js";
 
 export { default as Effect } from "../Effect.js";
 export { default as Signal } from "../Signal.js";
-export { default as Context } from "../Context.js";
+export { default as Context } from "../Scope.js";
 export { default as RefSignal } from "../RefSignal.js";
 export { default as Store } from "../Store.js";
 export type { SignalOptions, SignalTuple } from "../types.js";
@@ -110,9 +111,11 @@ export function createMemo<T>(subscriber: (oldValue: T | undefined) => T) {
  * @public
  * @param scope
  */
-export function batch(scope: (this: Context, context: Context) => void) {
-  const context = new Context();
-  return () => Context.run(context, scope);
+export function batch(
+  callback: (this: ExposedScope, scope: ExposedScope) => void
+) {
+  const scope = new Scope();
+  return () => Scope.run(scope, callback);
 }
 
 /**
@@ -128,9 +131,9 @@ export function createStore<T extends object>(
 ) {
   const store = new Store(target, options);
 
-  const context = new Context();
+  const scope = new Scope();
   const batchUpdate = (v: DeepPartial<T>) => {
-    Context.run(context, () => {
+    Scope.run(scope, () => {
       store.update(v);
     });
   };
@@ -164,10 +167,10 @@ export function createReactive<T extends object>(
   options?: { deep?: boolean }
 ) {
   const store = new Store(target, { readonly: false, deep: options?.deep });
-  const context = new Context();
+  const scope = new Scope();
 
   const batchUpdate = (v: DeepPartial<T>) => {
-    Context.run(context, () => store.update(v));
+    Scope.run(scope, () => store.update(v));
   };
 
   const $store = {

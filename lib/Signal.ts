@@ -1,4 +1,4 @@
-import Context from "./Context.js";
+import Scope from "./Scope.js";
 import Effect from "./Effect.js";
 import { SignalOptions } from "./types.js";
 
@@ -57,7 +57,7 @@ export default class Signal<T> {
       if (this.#equals(oldValue, newValue)) return;
     }
 
-    const context = Context.Current;
+    const scope = Scope.Current;
 
     const update = () => {
       this.value = newValue;
@@ -66,15 +66,15 @@ export default class Signal<T> {
       const subscribers = [...this.subscribers];
       this.subscribers.clear();
 
-      if (context) {
-        context.registerEffect(...subscribers);
+      if (scope) {
+        scope.registerEffect(...subscribers);
       } else {
         subscribers.forEach((effect) => effect.trigger());
       }
     };
 
-    if (context) {
-      context.registerUpdate(update);
+    if (scope) {
+      scope.registerUpdate(update);
     } else {
       update();
     }

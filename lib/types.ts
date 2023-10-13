@@ -21,6 +21,10 @@ export interface Callable {
   (): void;
 }
 
+export interface ExposedScope {
+  trigger(action?: "update" | "sideEffects" | undefined): void;
+}
+
 export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
   readonly?: boolean;
   deep?: boolean;
