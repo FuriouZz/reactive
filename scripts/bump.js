@@ -23,7 +23,11 @@ function bump(version) {
 
 function getPackage(release = "patch", identifier = undefined) {
   const pkg = JSON.parse(readFileSync("package.json", { encoding: "utf-8" }));
-  if (identifier && pkg.version.includes(identifier) && !process.argv.includes("--force")) {
+  if (
+    identifier &&
+    pkg.version.includes(identifier) &&
+    !process.argv.includes("--force")
+  ) {
     release = "prerelease";
   }
   const nextVersion = semver.inc(pkg.version, release, undefined, identifier);
@@ -63,6 +67,9 @@ async function main() {
       bump(pkg.nextVersion);
     } else {
       console.log("\n> Use --run to execute");
+      console.log(
+        "> Help: node bump.js [(pre){patch|minor|major|release}(-beta)]"
+      );
     }
   } catch (e) {
     // Restore version
