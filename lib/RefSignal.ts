@@ -25,11 +25,11 @@ export default class RefSignal<
     this.receiver = receiver;
   }
 
-  get value() {
+  get rawValue() {
     return Reflect.get(this.target, this.key, this.receiver);
   }
 
-  set value(v) {
+  set rawValue(v) {
     Reflect.set(this.target, this.key, v, this.receiver);
   }
 }

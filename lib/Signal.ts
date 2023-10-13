@@ -20,11 +20,11 @@ export default class Signal<T> {
     this.subscribers = new Set();
   }
 
-  get value() {
+  get rawValue() {
     return this.#value;
   }
 
-  set value(v) {
+  set rawValue(v) {
     this.#value = v;
   }
 
@@ -37,7 +37,7 @@ export default class Signal<T> {
     if (Effect.Current) {
       this.subscribers.add(Effect.Current);
     }
-    return this.value;
+    return this.rawValue;
   }
 
   /**
@@ -49,7 +49,7 @@ export default class Signal<T> {
    * @returns
    */
   set(newValue: T) {
-    const oldValue = this.value;
+    const oldValue = this.rawValue;
 
     if (typeof this.#equals === "boolean") {
       if (this.#equals && oldValue === newValue) return;
@@ -60,7 +60,7 @@ export default class Signal<T> {
     const scope = Scope.Current;
 
     const update = () => {
-      this.value = newValue;
+      this.rawValue = newValue;
       if (this.subscribers.size === 0) return;
 
       const subscribers = [...this.subscribers];
