@@ -1,6 +1,6 @@
-import { Scope, DeepPartial } from "@furiouzz/reactive";
+import { Scope } from "@furiouzz/reactive";
 import Store from "../Store.js";
-import { ReactiveProxy } from "../types.js";
+import { DeepPartial, ReactiveProxy } from "../types.js";
 
 /**
  * Wrap the given object into a store

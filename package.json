@@ -20,17 +20,17 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.cjs"
     },
     "./store": {
       "types": "./dist/store.d.ts",
       "import": "./dist/esm/store.js",
-      "require": "./dist/cjs/store.js"
+      "require": "./dist/cjs/store.cjs"
     },
     "./atom": {
       "types": "./dist/atom.d.ts",
       "import": "./dist/esm/atom.js",
-      "require": "./dist/cjs/atom.js"
+      "require": "./dist/cjs/atom.cjs"
     }
   },
   "files": [

@@ -4,10 +4,24 @@ export interface OnReturn<T> {
   (oldValue: T | undefined): T;
 }
 
+/**
+ * Give dependencies to observe
+ * @public
+ * @param dependencies
+ * @param callback
+ * @returns
+ */
 export default function on<T>(
   dependencies: (() => any) | (() => any)[],
   callback: (oldValue: T) => T
 ): OnReturn<T>;
+/**
+ * Give dependencies to observe
+ * @public
+ * @param dependencies
+ * @param callback
+ * @returns
+ */
 export default function on<T>(
   dependencies: (() => any) | (() => any)[],
   callback: (oldValue: T | undefined) => T

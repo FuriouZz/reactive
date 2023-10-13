@@ -1,5 +1,6 @@
-import { Scope, SignalOptions, DeepPartial } from "@furiouzz/reactive";
+import { Scope, SignalOptions } from "@furiouzz/reactive";
 import Store from "../Store.js";
+import { DeepPartial } from "../types.js";
 
 /**
  * Create an immutable store
