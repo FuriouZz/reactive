@@ -1,5 +1,6 @@
+import Effect from "./Effect.js";
 import generateID from "./generateID.js";
-import type { Subscriber } from "./types.js";
+import type { Callable } from "./types.js";
 
 /**
  * Context class defines an execution scope.
@@ -11,8 +12,8 @@ import type { Subscriber } from "./types.js";
  */
 export default class Context {
   id!: number;
-  #updates: Subscriber[];
-  #sideEffects: Set<Subscriber>;
+  #updates: Callable[];
+  #sideEffects: Set<Effect>;
 
   constructor() {
     generateID(this);
@@ -24,7 +25,7 @@ export default class Context {
    * Register update
    * @param updates
    */
-  registerUpdate = (...updates: Subscriber[]) => {
+  registerUpdate = (...updates: Callable[]) => {
     this.#updates.push(...updates);
   };
 
@@ -32,7 +33,7 @@ export default class Context {
    * Register side effects registered during updates
    * @param sideEffects
    */
-  registerEffect = (...sideEffects: Subscriber[] | Subscriber[][]) => {
+  registerEffect = (...sideEffects: Effect[]) => {
     sideEffects.flat().forEach((s) => this.#sideEffects.add(s));
   };
 
@@ -56,7 +57,7 @@ export default class Context {
       const sideEffects = [...this.#sideEffects];
       this.#sideEffects.clear();
       for (const sideEffect of sideEffects) {
-        sideEffect();
+        sideEffect.trigger();
       }
     }
   };

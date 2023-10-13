@@ -1,6 +1,6 @@
 import Context from "./Context.js";
 import Effect from "./Effect.js";
-import { SignalOptions, Subscriber } from "./types.js";
+import { SignalOptions } from "./types.js";
 
 /**
  * Create a signal object with a get and a set method
@@ -9,7 +9,7 @@ import { SignalOptions, Subscriber } from "./types.js";
  * @public
  */
 export default class Signal<T> {
-  subscribers: Set<Subscriber>;
+  subscribers: Set<Effect>;
 
   #value: T;
   #equals: boolean | ((a: T, b: T) => boolean);
@@ -35,7 +35,7 @@ export default class Signal<T> {
    */
   get() {
     if (Effect.Current) {
-      this.subscribers.add(Effect.Current.trigger);
+      this.subscribers.add(Effect.Current);
     }
     return this.value;
   }
@@ -67,9 +67,9 @@ export default class Signal<T> {
       this.subscribers.clear();
 
       if (context) {
-        context.registerEffect(subscribers);
+        context.registerEffect(...subscribers);
       } else {
-        subscribers.forEach((effect) => effect());
+        subscribers.forEach((effect) => effect.trigger());
       }
     };
 

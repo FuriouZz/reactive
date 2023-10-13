@@ -1,15 +1,15 @@
-import type { Subscriber } from "./types.js";
+import type { Callable } from "./types.js";
 
 /**
  * This class tracks signal access, means a get() call, and subscribe to the signal
  * @public
  */
 export default class Effect {
-  trigger: Subscriber;
+  trigger: Callable;
 
   #disposed: boolean;
 
-  constructor(effect: Subscriber) {
+  constructor(effect: Callable) {
     this.#disposed = false;
     this.trigger = () => {
       if (this.#disposed) return;

@@ -17,7 +17,7 @@ export interface SignalOptions<T> {
  */
 export type SignalTuple<T> = [() => T, (value: T) => void];
 
-export interface Subscriber {
+export interface Callable {
   (): void;
 }
 
