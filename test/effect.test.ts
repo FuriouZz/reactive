@@ -3,6 +3,8 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  untrack,
+  on,
 } from "../lib/entries/index.js";
 
 test("createEffect()", () => {
@@ -97,4 +99,52 @@ test("createMemo()", () => {
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
   expect(onChange).toHaveBeenNthCalledWith(2, "Hello Pablo!");
   expect(onChange).toHaveBeenNthCalledWith(3, "¡Hola Pablo!");
+});
+
+test("untrack()", () => {
+  const onChange = jest.fn();
+
+  const [greeting, setGreeting] = createSignal("Hello");
+  const [who, setWho] = createSignal("World");
+
+  const message = createMemo(() => {
+    const value = `${greeting()} ${untrack(who)}`;
+    onChange(value);
+    return value;
+  });
+
+  setWho("Pablo!");
+  setGreeting("¡Hola");
+
+  const result = message();
+  expect(result).toBe("¡Hola Pablo!");
+
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
+});
+
+test("on()", () => {
+  const onChange = jest.fn();
+
+  const [greeting, setGreeting] = createSignal("Hello");
+  const [who, setWho] = createSignal("World");
+
+  const message = createMemo(
+    on(greeting, () => {
+      const value = `${greeting()} ${who()}`;
+      onChange(value);
+      return value;
+    })
+  );
+
+  setWho("Pablo!");
+  setGreeting("¡Hola");
+
+  const result = message();
+  expect(result).toBe("¡Hola Pablo!");
+
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
+  expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
 });
