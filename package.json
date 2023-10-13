@@ -20,7 +20,167 @@
     "typescript": "^5.0.4"
   },
   "exports": {
-    ".": {
+    "./batch": {
+      "import": {
+        "types": "./dist/batch.d.ts",
+        "default": "./dist/esm/batch.js"
+      },
+      "require": {
+        "types": "./dist/batch.d.ts",
+        "default": "./dist/cjs/batch.cjs"
+      }
+    },
+    "./batch.js": {
+      "import": {
+        "types": "./dist/batch.d.ts",
+        "default": "./dist/esm/batch.js"
+      },
+      "require": {
+        "types": "./dist/batch.d.ts",
+        "default": "./dist/cjs/batch.cjs"
+      }
+    },
+    "./createEffect": {
+      "import": {
+        "types": "./dist/createEffect.d.ts",
+        "default": "./dist/esm/createEffect.js"
+      },
+      "require": {
+        "types": "./dist/createEffect.d.ts",
+        "default": "./dist/cjs/createEffect.cjs"
+      }
+    },
+    "./createEffect.js": {
+      "import": {
+        "types": "./dist/createEffect.d.ts",
+        "default": "./dist/esm/createEffect.js"
+      },
+      "require": {
+        "types": "./dist/createEffect.d.ts",
+        "default": "./dist/cjs/createEffect.cjs"
+      }
+    },
+    "./createMemo": {
+      "import": {
+        "types": "./dist/createMemo.d.ts",
+        "default": "./dist/esm/createMemo.js"
+      },
+      "require": {
+        "types": "./dist/createMemo.d.ts",
+        "default": "./dist/cjs/createMemo.cjs"
+      }
+    },
+    "./createMemo.js": {
+      "import": {
+        "types": "./dist/createMemo.d.ts",
+        "default": "./dist/esm/createMemo.js"
+      },
+      "require": {
+        "types": "./dist/createMemo.d.ts",
+        "default": "./dist/cjs/createMemo.cjs"
+      }
+    },
+    "./createMutableStore": {
+      "import": {
+        "types": "./dist/createMutableStore.d.ts",
+        "default": "./dist/esm/createMutableStore.js"
+      },
+      "require": {
+        "types": "./dist/createMutableStore.d.ts",
+        "default": "./dist/cjs/createMutableStore.cjs"
+      }
+    },
+    "./createMutableStore.js": {
+      "import": {
+        "types": "./dist/createMutableStore.d.ts",
+        "default": "./dist/esm/createMutableStore.js"
+      },
+      "require": {
+        "types": "./dist/createMutableStore.d.ts",
+        "default": "./dist/cjs/createMutableStore.cjs"
+      }
+    },
+    "./createReactive": {
+      "import": {
+        "types": "./dist/createReactive.d.ts",
+        "default": "./dist/esm/createReactive.js"
+      },
+      "require": {
+        "types": "./dist/createReactive.d.ts",
+        "default": "./dist/cjs/createReactive.cjs"
+      }
+    },
+    "./createReactive.js": {
+      "import": {
+        "types": "./dist/createReactive.d.ts",
+        "default": "./dist/esm/createReactive.js"
+      },
+      "require": {
+        "types": "./dist/createReactive.d.ts",
+        "default": "./dist/cjs/createReactive.cjs"
+      }
+    },
+    "./createRefSignal": {
+      "import": {
+        "types": "./dist/createRefSignal.d.ts",
+        "default": "./dist/esm/createRefSignal.js"
+      },
+      "require": {
+        "types": "./dist/createRefSignal.d.ts",
+        "default": "./dist/cjs/createRefSignal.cjs"
+      }
+    },
+    "./createRefSignal.js": {
+      "import": {
+        "types": "./dist/createRefSignal.d.ts",
+        "default": "./dist/esm/createRefSignal.js"
+      },
+      "require": {
+        "types": "./dist/createRefSignal.d.ts",
+        "default": "./dist/cjs/createRefSignal.cjs"
+      }
+    },
+    "./createSignal": {
+      "import": {
+        "types": "./dist/createSignal.d.ts",
+        "default": "./dist/esm/createSignal.js"
+      },
+      "require": {
+        "types": "./dist/createSignal.d.ts",
+        "default": "./dist/cjs/createSignal.cjs"
+      }
+    },
+    "./createSignal.js": {
+      "import": {
+        "types": "./dist/createSignal.d.ts",
+        "default": "./dist/esm/createSignal.js"
+      },
+      "require": {
+        "types": "./dist/createSignal.d.ts",
+        "default": "./dist/cjs/createSignal.cjs"
+      }
+    },
+    "./createStore": {
+      "import": {
+        "types": "./dist/createStore.d.ts",
+        "default": "./dist/esm/createStore.js"
+      },
+      "require": {
+        "types": "./dist/createStore.d.ts",
+        "default": "./dist/cjs/createStore.cjs"
+      }
+    },
+    "./createStore.js": {
+      "import": {
+        "types": "./dist/createStore.d.ts",
+        "default": "./dist/esm/createStore.js"
+      },
+      "require": {
+        "types": "./dist/createStore.d.ts",
+        "default": "./dist/cjs/createStore.cjs"
+      }
+    },
+    "./index": {
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/esm/index.js"
@@ -40,24 +200,54 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
-    "./atom": {
+    ".": {
       "import": {
-        "types": "./dist/atom.d.ts",
-        "default": "./dist/esm/atom.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
       },
       "require": {
-        "types": "./dist/atom.d.ts",
-        "default": "./dist/cjs/atom.cjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
       }
     },
-    "./atom.js": {
+    "./makeAtom": {
       "import": {
-        "types": "./dist/atom.d.ts",
-        "default": "./dist/esm/atom.js"
+        "types": "./dist/makeAtom.d.ts",
+        "default": "./dist/esm/makeAtom.js"
       },
       "require": {
-        "types": "./dist/atom.d.ts",
-        "default": "./dist/cjs/atom.cjs"
+        "types": "./dist/makeAtom.d.ts",
+        "default": "./dist/cjs/makeAtom.cjs"
+      }
+    },
+    "./makeAtom.js": {
+      "import": {
+        "types": "./dist/makeAtom.d.ts",
+        "default": "./dist/esm/makeAtom.js"
+      },
+      "require": {
+        "types": "./dist/makeAtom.d.ts",
+        "default": "./dist/cjs/makeAtom.cjs"
+      }
+    },
+    "./stores": {
+      "import": {
+        "types": "./dist/stores.d.ts",
+        "default": "./dist/esm/stores.js"
+      },
+      "require": {
+        "types": "./dist/stores.d.ts",
+        "default": "./dist/cjs/stores.cjs"
+      }
+    },
+    "./stores.js": {
+      "import": {
+        "types": "./dist/stores.d.ts",
+        "default": "./dist/esm/stores.js"
+      },
+      "require": {
+        "types": "./dist/stores.d.ts",
+        "default": "./dist/cjs/stores.cjs"
       }
     }
   },

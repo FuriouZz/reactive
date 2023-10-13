@@ -7,7 +7,7 @@ import type { SignalTuple } from "../types.js";
  * @param value
  * @returns
  */
-export function makeAtom<T>(value: Signal<T> | SignalTuple<T>) {
+export default function makeAtom<T>(value: Signal<T> | SignalTuple<T>) {
   const [get, set] = (() => {
     if (Array.isArray(value)) {
       return value;

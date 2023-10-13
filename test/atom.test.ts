@@ -1,5 +1,5 @@
 import { batch, createEffect, createSignal } from "../lib/entries/index.js";
-import { makeAtom } from "../lib/entries/atom.js";
+import makeAtom from "../lib/entries/makeAtom.js";
 
 const createAtom = <T>(value: T) => {
   return makeAtom(createSignal(value));

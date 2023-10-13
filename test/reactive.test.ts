@@ -1,4 +1,5 @@
-import { batch, createEffect, createReactive } from "../lib/entries/index.js";
+import { batch, createEffect } from "../lib/entries/index.js";
+import createReactive from "../lib/entries/createReactive.js";
 
 class Vector2 {
   x = 0;
