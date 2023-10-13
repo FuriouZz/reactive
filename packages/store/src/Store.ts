@@ -1,4 +1,4 @@
-import RefSignal from "./RefSignal.js";
+import { RefSignal } from "@furiouzz/reactive";
 import { StoreOptions } from "./types.js";
 
 /**

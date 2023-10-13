@@ -1,4 +1,5 @@
-import { batch, createEffect, createSignal } from "../lib/entries/index.js";
+import { test, vi, expect } from "vitest";
+import { batch, createEffect, createSignal } from "../src/index.js";
 
 test("createSignal()", () => {
   const [message, setMessage] = createSignal("Hello World");
@@ -12,7 +13,7 @@ test("createSignal()", () => {
 });
 
 test("batch() updates", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");

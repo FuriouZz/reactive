@@ -1,3 +1,4 @@
+import { test, vi, expect } from "vitest";
 import {
   batch,
   createEffect,
@@ -5,14 +6,14 @@ import {
   createSignal,
   untrack,
   on,
-} from "../lib/entries/index.js";
+} from "../src/index.js";
 
 test("createEffect()", () => {
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
   const [punctuation, setPunctuation] = createSignal("");
 
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
@@ -30,7 +31,7 @@ test("createEffect()", () => {
 });
 
 test("Update inside createEffect()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
@@ -54,7 +55,7 @@ test("Update inside createEffect()", () => {
 });
 
 test("Update inside createEffect() with batch()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
@@ -78,7 +79,7 @@ test("Update inside createEffect() with batch()", () => {
 });
 
 test("createMemo()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
@@ -102,7 +103,7 @@ test("createMemo()", () => {
 });
 
 test("untrack()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
@@ -125,7 +126,7 @@ test("untrack()", () => {
 });
 
 test("on()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");

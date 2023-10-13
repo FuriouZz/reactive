@@ -1,5 +1,4 @@
-import type Signal from "../Signal.js";
-import type { SignalTuple } from "../types.js";
+import type { Signal, SignalTuple } from "@furiouzz/reactive";
 
 /**
  * Create a single function as getter/setter

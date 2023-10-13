@@ -1,5 +1,6 @@
-import { batch, createEffect } from "../lib/entries/index.js";
-import createReactive from "../lib/entries/createReactive.js";
+import { test, expect, vi } from "vitest";
+import { batch, createEffect } from "@furiouzz/reactive";
+import { createReactive } from "../src/index.js";
 
 class Vector2 {
   x = 0;
@@ -16,7 +17,7 @@ class Vector2 {
 }
 
 test("createReactive()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
 
   createEffect(() => {
@@ -39,7 +40,7 @@ test("createReactive()", () => {
 });
 
 test("createEffect()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
 
   createEffect(() => {
@@ -51,7 +52,7 @@ test("createEffect()", () => {
 });
 
 test("batchUpdate()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
 
   createEffect(() => {
@@ -79,7 +80,7 @@ test("batchUpdate()", () => {
 });
 
 test("batchUpdate() (2)", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
   const { batchUpdate } = vec2.$store;
 
@@ -103,7 +104,7 @@ test("batchUpdate() (2)", () => {
 });
 
 test("dispose createEffect()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
   const { batchUpdate } = vec2.$store;
 
@@ -120,7 +121,7 @@ test("dispose createEffect()", () => {
 });
 
 test("add/remove subscribers", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const vec2 = createReactive(new Vector2());
 
   const unsubscribe = createEffect(() => onChange(`${vec2.x} ${vec2.y}`));
@@ -139,7 +140,7 @@ test("add/remove subscribers", () => {
 });
 
 test("batch updates", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const state = createReactive({ message: "Hello World" });
 
@@ -158,7 +159,7 @@ test("batch updates", () => {
 });
 
 test("batch updates for two values", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const state = createReactive({ x: 0, y: 0 });
 

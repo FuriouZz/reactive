@@ -1,5 +1,5 @@
+import { SignalOptions } from "@furiouzz/reactive";
 import Store from "../Store.js";
-import type { SignalOptions } from "../types.js";
 
 /**
  * Create a mutable store

@@ -1,9 +1,6 @@
-import { batch, createEffect, createSignal } from "../lib/entries/index.js";
-import makeAtom from "../lib/entries/makeAtom.js";
-
-const createAtom = <T>(value: T) => {
-  return makeAtom(createSignal(value));
-};
+import { test, vi, expect } from "vitest";
+import { batch, createEffect } from "@furiouzz/reactive";
+import { createAtom } from "../src/index.js";
 
 test("createAtom()", () => {
   const message = createAtom("Hello World");
@@ -20,7 +17,7 @@ test("createEffect()", () => {
   const who = createAtom("World");
   const punctuation = createAtom("");
 
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
@@ -38,7 +35,7 @@ test("createEffect()", () => {
 });
 
 test("Update signal inside createEffect()", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const greeting = createAtom("Hello");
   const who = createAtom("World");
@@ -62,7 +59,7 @@ test("Update signal inside createEffect()", () => {
 });
 
 test("batch() updates", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const greeting = createAtom("Hello");
   const who = createAtom("World");

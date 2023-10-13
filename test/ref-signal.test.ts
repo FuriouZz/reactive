@@ -1,4 +1,5 @@
-import { batch, createEffect, createRefSignal } from "../lib/entries/index.js";
+import { test, vi, expect } from "vitest";
+import { batch, createEffect, createRefSignal } from "../src/index.js";
 
 test("createRefSignal()", () => {
   const target = { message: "Hello World" };
@@ -14,7 +15,7 @@ test("createRefSignal()", () => {
 });
 
 test("batch() updates", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const target = { greeting: "Hello", who: "World" };
   const [greeting, setGreeting] = createRefSignal(target, "greeting");

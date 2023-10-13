@@ -24,14 +24,3 @@ export interface Callable {
 export interface ExposedScope {
   trigger(action?: "update" | "sideEffects" | undefined): void;
 }
-
-export interface StoreOptions<T> extends SignalOptions<T[keyof T]> {
-  readonly?: boolean;
-  deep?: boolean;
-}
-
-export type ReactiveProxy<T extends object> = T & {
-  $store: {
-    batchUpdate(state: DeepPartial<T>): void;
-  };
-};

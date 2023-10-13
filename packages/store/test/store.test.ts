@@ -1,5 +1,6 @@
-import { createEffect, createMemo } from "../lib/entries/index.js";
-import { createStore, createMutableStore } from "../lib/entries/stores.js";
+import { test, vi, expect } from "vitest";
+import { createEffect, createMemo } from "@furiouzz/reactive";
+import { createStore, createMutableStore } from "../src/index.js";
 
 test("createStore()", () => {
   const [state, batchUpdate] = createStore({ message: "Hello World" });
@@ -31,7 +32,7 @@ test("createMutableStore()", () => {
 });
 
 test("createStore() with getter", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const [state, batchUpdate] = createStore({
     greeting: "Hello",
     who: "World",
@@ -54,7 +55,7 @@ test("createStore() with getter", () => {
 });
 
 test("createStore() with getter + memo", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [state, batchUpdate] = createStore({
     greeting: "Hello",
@@ -80,7 +81,7 @@ test("createStore() with getter + memo", () => {
 });
 
 test("Store + Effect (Deep)", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [state, batchUpdate] = createStore({
     greeting: "Hello",
@@ -112,7 +113,7 @@ test("Store + Effect (Deep)", () => {
 });
 
 test("Store + Effect (Deep) + undefined", () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
 
   const [state, batchUpdate] = createStore<{
     greeting: string;

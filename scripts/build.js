@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { ROOT_DIR, ensureDirectory } from "./common.js";
 import { context } from "esbuild";
+import { spawnSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,24 +13,38 @@ const watchMode = process.argv.includes("--watch");
 
 /**
  *
+ * @param {string} packageDir
+ */
+function tsc(packageDir = "./") {
+  spawnSync("tsc -p tsconfig.build.json", {
+    stdio: "inherit",
+    shell: true,
+    cwd: packageDir,
+  });
+}
+
+/**
+ *
  * @param {string} input
  * @param {string} output
  * @param {"cjs"|"esm"} format
+ * @param {string} [packageDir]
  */
-async function build(input, output, format) {
+async function build(input, output, format, packageDir = "./") {
   const extension = format === "cjs" ? "cjs" : "js";
   const type = format === "cjs" ? "commonjs" : "module";
-  const outfile = `dist/${format}/${output}.${extension}`;
+  const outfile = join(rootDir, `dist/${format}/${output}.${extension}`);
 
   ensureDirectory(dirname(outfile));
 
   const ctx = await context({
-    entryPoints: [input],
+    entryPoints: [join(packageDir, input)],
     bundle: true,
     target: "es6",
     format,
     outfile,
     write: true,
+    external: ["@furiouzz/reactive"],
   });
 
   if (watchMode) {
@@ -49,17 +64,23 @@ async function build(input, output, format) {
  *
  * @param {string} input
  * @param {string} output
+ * @param {string} [packageDir]
  */
-async function compile(input, output) {
-  await Promise.all([build(input, output, "cjs"), build(input, output, "esm")]);
+async function compile(input, output, packageDir = "./") {
+  tsc(packageDir);
+
+  await Promise.all([
+    build(input, output, "cjs", packageDir),
+    build(input, output, "esm", packageDir),
+  ]);
 
   if (!watchMode) {
     const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
     const extractorConfig =
       ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
 
-    const typeSource = input.replace("lib/", "build/").replace(".ts", ".d.ts");
-    extractorConfig.mainEntryPointFilePath = join(rootDir, typeSource);
+    const typeSource = input.replace("src/", "types/").replace(".ts", ".d.ts");
+    extractorConfig.mainEntryPointFilePath = join(packageDir, typeSource);
     extractorConfig.untrimmedFilePath = join(rootDir, "dist", `${output}.d.ts`);
     extractorConfig.reportFilePath = join(rootDir, "temp", `${output}.md`);
 
@@ -71,15 +92,9 @@ async function compile(input, output) {
 }
 
 async function main() {
-  if (watchMode) {
-    import("./dev.js");
-  } else {
-    await import("./dev.js");
-  }
-  await Promise.all([
-    compile("lib/entries/index.ts", "index"),
-    compile("lib/entries/atom.ts", "atom"),
-  ]);
+  await compile("src/index.ts", "index", rootDir);
+  await compile("src/index.ts", "store", join(rootDir, "packages/store"));
+  await compile("src/index.ts", "atom", join(rootDir, "packages/atom"));
   if (!watchMode) {
     await import("./validate-package.js");
   }
