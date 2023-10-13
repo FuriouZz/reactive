@@ -60,15 +60,15 @@ test("batchUpdate()", () => {
   batch(() => {
     vec2.x = 10;
     vec2.y = 10;
-  });
+  })();
 
   batch(() => {
     vec2.set(20, 20);
-  });
+  })();
 
   batch(() => {
     vec2.setScalar(30);
-  });
+  })();
 
   expect(onChange).toHaveBeenCalledTimes(4);
   expect(onChange).toHaveBeenNthCalledWith(1, `0 0`);
@@ -92,7 +92,7 @@ test("batchUpdate() (2)", () => {
     vec2.y = vec2.x / 2;
     apply("update"); // force vec2.y to be updated
     vec2.x = vec2.y * 1.5;
-  });
+  })();
 
   expect(onChange).toHaveBeenCalledTimes(4);
   expect(onChange).toHaveBeenNthCalledWith(1, `0 0`);
@@ -148,7 +148,7 @@ test("batch updates", () => {
   batch(() => {
     state.message = "Bonjour François Dupont";
     state.message = "¡Hola Pablo!";
-  });
+  })();
 
   expect(onChange).toHaveBeenCalledTimes(1);
   expect(state.message).toEqual("¡Hola Pablo!");
@@ -166,7 +166,7 @@ test("batch updates for two values", () => {
     state.y = 10;
     apply("update");
     state.x += 10;
-  });
+  })();
 
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(`${state.x} ${state.y}`).toEqual("20 10");

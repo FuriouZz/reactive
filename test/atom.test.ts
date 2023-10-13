@@ -1,9 +1,4 @@
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-} from "../lib/entries/index.js";
+import { batch, createEffect, createSignal } from "../lib/entries/index.js";
 import { makeAtom } from "../lib/entries/atom.js";
 
 const createAtom = <T>(value: T) => {
@@ -79,7 +74,7 @@ test("batch() updates", () => {
   batch(() => {
     greeting("¡Hola");
     who("Pablo!");
-  });
+  })();
 
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");

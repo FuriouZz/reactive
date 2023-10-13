@@ -112,7 +112,7 @@ export function createMemo<T>(subscriber: (oldValue: T | undefined) => T) {
  */
 export function batch(scope: (this: Context, context: Context) => void) {
   const context = new Context();
-  Context.run(context, scope);
+  return () => Context.run(context, scope);
 }
 
 /**

@@ -62,13 +62,13 @@ test("Update inside createEffect() with batch()", () => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
   });
 
-  createEffect(() => {
+  createEffect(
     batch(() => {
       setWho("Pablo");
       setGreeting("¡Hola");
       setPunctuation("!");
-    });
-  });
+    })
+  );
 
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
