@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "CommonJS",
+    "module": "Node16",
     "declaration": true,
     "moduleResolution": "Node16",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "downlevelIteration": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,7 +12,5 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./build"
   },
-  "include": [
-    "./lib/**/*"
-  ]
+  "include": ["./lib/**/*"]
 }
