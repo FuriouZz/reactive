@@ -1,7 +1,7 @@
 {
   "name": "@furiouzz/reactive",
   "description": "",
-  "version": "1.0.3",
+  "version": "2.0.0-beta.0",
   "author": "Christophe MASSOLIN <frenchise93@gmail.com> (https://chrsmsln.com)",
   "devDependencies": {
     "@furiouzz/lol": "^0.0.36",
