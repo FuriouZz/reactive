@@ -10,7 +10,7 @@ import { DeepPartial, ReactiveProxy } from "../types.js";
  */
 export default function createReactive<T extends object>(
   target: T,
-  options?: { deep?: boolean }
+  options?: { deep?: boolean },
 ) {
   const store = new Store(target, { readonly: false, deep: options?.deep });
   const scope = new Scope();

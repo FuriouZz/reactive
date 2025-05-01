@@ -1,15 +1,15 @@
-import { spawnSync } from "node:child_process";
-import { join } from "node:path";
-import { flat } from "@furiouzz/lol/object";
 import { difference } from "@furiouzz/lol/array";
+import { flat } from "@furiouzz/lol/object";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ROOT_DIR } from "./common.js";
 
 function main() {
   let isValid = true;
 
   const json = JSON.parse(
-    readFileSync(join(ROOT_DIR, "package.json"), "utf-8")
+    readFileSync(join(ROOT_DIR, "package.json"), "utf-8"),
   );
 
   const { stdout } = spawnSync("npm pack --dry-run --json", {

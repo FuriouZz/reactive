@@ -11,7 +11,7 @@ import { DeepPartial } from "../types.js";
  */
 export default function createStore<T extends object>(
   target: T,
-  options?: SignalOptions<T[keyof T]>
+  options?: SignalOptions<T[keyof T]>,
 ) {
   const store = new Store(target, options);
 

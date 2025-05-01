@@ -10,7 +10,7 @@ import Store from "../Store.js";
  */
 export default function createMutableStore<T extends object>(
   target: T,
-  options?: SignalOptions<T[keyof T]>
+  options?: SignalOptions<T[keyof T]>,
 ) {
   const store = new Store(target, { ...options, readonly: false });
   return store.proxy;

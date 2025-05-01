@@ -8,7 +8,7 @@ import Effect from "../Effect.js";
  * @returns
  */
 export default function createEffect<T>(
-  subscriber: (oldValue: T | undefined) => T
+  subscriber: (oldValue: T | undefined) => T,
 ): () => void;
 /**
  * Create side effects executed each time its dependencies have changed
@@ -19,11 +19,11 @@ export default function createEffect<T>(
  */
 export default function createEffect<T>(
   subscriber: (oldValue: T) => T,
-  defaultValue: T
+  defaultValue: T,
 ): () => void;
 export default function createEffect<T>(
   subscriber: (oldValue: T | undefined) => T,
-  defaultValue?: T
+  defaultValue?: T,
 ) {
   let lastComputedValue = defaultValue;
 

@@ -7,7 +7,7 @@ import { SignalOptions } from "./types.js";
  */
 export default class RefSignal<
   T extends object,
-  K extends keyof T
+  K extends keyof T,
 > extends Signal<T[K]> {
   target: T;
   key: K;
@@ -17,7 +17,7 @@ export default class RefSignal<
     target: T,
     key: K,
     receiver?: any,
-    options?: SignalOptions<T[K]>
+    options?: SignalOptions<T[K]>,
   ) {
     super(Reflect.get(target, key), options);
     this.target = target;

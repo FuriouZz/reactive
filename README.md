@@ -10,7 +10,7 @@ Exploration of reactivity with API similar to [SolidJS](https://www.solidjs.com/
 ## Examples
 
 ```ts
-import { createSignal, createEffect, batch } from "@furiouzz/reactive";
+import { batch, createEffect, createSignal } from "@furiouzz/reactive";
 
 const [greeting, setGreeting] = createSignal("Hello");
 const [who, setWho] = createSignal("World");
@@ -32,7 +32,7 @@ batch(() => {
 ## Atom
 
 ```ts
-import { createSignal, createEffect, batch } from "@furiouzz/reactive";
+import { batch, createEffect, createSignal } from "@furiouzz/reactive";
 import { makeAtom } from "@furiouzz/reactive/atom.js";
 
 const greeting = makeAtom(createSignal("Hello"));
@@ -55,7 +55,7 @@ batch(() => {
 ## Store
 
 ```ts
-import { createMemo, createEffect, batch } from "@furiouzz/reactive";
+import { batch, createEffect, createMemo } from "@furiouzz/reactive";
 import { createStore } from "@furiouzz/reactive/store";
 
 const [state, batchUpdate] = createStore<{
@@ -91,7 +91,7 @@ batchUpdate({
 ## Reactive
 
 ```ts
-import { createMemo, createEffect, batch } from "@furiouzz/reactive";
+import { batch, createEffect, createMemo } from "@furiouzz/reactive";
 import { createReactive } from "@furiouzz/reactive/store";
 
 class Vector2 {

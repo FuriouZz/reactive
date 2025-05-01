@@ -54,10 +54,10 @@ export default class Store<T extends object> {
     const value = signal.get();
 
     if (
-      this.#deep &&
-      typeof value === "object" &&
-      value !== null &&
-      !this.#stores.has(key)
+      this.#deep
+      && typeof value === "object"
+      && value !== null
+      && !this.#stores.has(key)
     ) {
       const store = new Store(value, {
         readonly: this.#readonly,

@@ -1,10 +1,9 @@
+import { spawnSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import semver from "semver";
-import { spawnSync } from "child_process";
 import { SPAWN_OPTIONS } from "./common.js";
 
 /**
- *
  * @param {string} version
  */
 function bump(version) {
@@ -17,16 +16,16 @@ function bump(version) {
       `git push --tags`,
       `git push`,
     ].join(" && "),
-    SPAWN_OPTIONS
+    SPAWN_OPTIONS,
   );
 }
 
 function getPackage(release = "patch", identifier = undefined) {
   const pkg = JSON.parse(readFileSync("package.json", { encoding: "utf-8" }));
   if (
-    identifier &&
-    pkg.version.includes(identifier) &&
-    !process.argv.includes("--force")
+    identifier
+    && pkg.version.includes(identifier)
+    && !process.argv.includes("--force")
   ) {
     release = "prerelease";
   }
@@ -43,9 +42,7 @@ function getPackage(release = "patch", identifier = undefined) {
 }
 
 const getRelease = () => {
-  const index = process.argv.findIndex((a) =>
-    /^(pre)?(patch|minor|major|release)/.test(a)
-  );
+  const index = process.argv.findIndex((a) => /^(pre)?(patch|minor|major|release)/.test(a));
   if (index === -1) return { release: "patch", identifier: undefined };
   const [release, identifier] = process.argv[index].split("-");
   return { release: identifier ? `pre${release}` : release, identifier };
@@ -68,7 +65,7 @@ async function main() {
     } else {
       console.log("\n> Use --run to execute");
       console.log(
-        "> Help: node bump.js [(pre){patch|minor|major|release}(-beta)]"
+        "> Help: node bump.js [(pre){patch|minor|major|release}(-beta)]",
       );
     }
   } catch (e) {

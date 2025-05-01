@@ -1,8 +1,8 @@
 export { default as batch } from "./api/batch.js";
-export { default as createSignal } from "./api/createSignal.js";
-export { default as createRefSignal } from "./api/createRefSignal.js";
 export { default as createEffect } from "./api/createEffect.js";
 export { default as createMemo } from "./api/createMemo.js";
+export { default as createRefSignal } from "./api/createRefSignal.js";
+export { default as createSignal } from "./api/createSignal.js";
 export { default as on } from "./api/on.js";
 export { default as untrack } from "./api/untrack.js";
 

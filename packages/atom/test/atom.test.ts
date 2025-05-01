@@ -1,5 +1,5 @@
-import { test, vi, expect } from "vitest";
 import { batch, createEffect } from "@furiouzz/reactive";
+import { expect, test, vi } from "vitest";
 import { createAtom } from "../src/index.js";
 
 test("createAtom()", () => {

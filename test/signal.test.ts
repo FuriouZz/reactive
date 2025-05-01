@@ -1,4 +1,4 @@
-import { test, vi, expect } from "vitest";
+import { expect, test, vi } from "vitest";
 import { batch, createEffect, createSignal } from "../src/index.js";
 
 test("createSignal()", () => {

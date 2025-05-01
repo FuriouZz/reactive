@@ -1,10 +1,10 @@
 import { Extractor, ExtractorConfig } from "@microsoft/api-extractor";
+import { spawnSync } from "child_process";
+import { context } from "esbuild";
 import { writeFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
-import { ROOT_DIR, ensureDirectory } from "./common.js";
-import { context } from "esbuild";
-import { spawnSync } from "child_process";
+import { ensureDirectory, ROOT_DIR } from "./common.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,7 +12,6 @@ const rootDir = join(__dirname, "../");
 const watchMode = process.argv.includes("--watch");
 
 /**
- *
  * @param {string} packageDir
  */
 function tsc(packageDir = "./") {
@@ -24,7 +23,6 @@ function tsc(packageDir = "./") {
 }
 
 /**
- *
  * @param {string} input
  * @param {string} output
  * @param {"cjs"|"esm"} format
@@ -56,12 +54,11 @@ async function build(input, output, format, packageDir = "./") {
 
   writeFileSync(
     `./dist/${format}/package.json`,
-    JSON.stringify({ type }, null, 2)
+    JSON.stringify({ type }, null, 2),
   );
 }
 
 /**
- *
  * @param {string} input
  * @param {string} output
  * @param {string} [packageDir]
@@ -76,8 +73,7 @@ async function compile(input, output, packageDir = "./") {
 
   if (!watchMode) {
     const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
-    const extractorConfig =
-      ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
+    const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
 
     const typeSource = input.replace("src/", "types/").replace(".ts", ".d.ts");
     extractorConfig.mainEntryPointFilePath = join(packageDir, typeSource);

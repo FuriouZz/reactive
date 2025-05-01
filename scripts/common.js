@@ -1,6 +1,6 @@
+import fs, { mkdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import fs, { mkdirSync } from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -10,7 +10,6 @@ export const ROOT_DIR = join(__dirname, "../");
 export const SPAWN_OPTIONS = { shell: true, stdio: "inherit" };
 
 /**
- *
  * @param {string} path
  * @returns {boolean}
  */
@@ -24,7 +23,6 @@ export const isDirectory = (path) => {
 };
 
 /**
- *
  * @param {string} path
  */
 export const ensureDirectory = (path) => {

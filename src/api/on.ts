@@ -13,7 +13,7 @@ export interface OnReturn<T> {
  */
 export default function on<T>(
   dependencies: (() => any) | (() => any)[],
-  callback: (oldValue: T) => T
+  callback: (oldValue: T) => T,
 ): OnReturn<T>;
 /**
  * Give dependencies to observe
@@ -24,7 +24,7 @@ export default function on<T>(
  */
 export default function on<T>(
   dependencies: (() => any) | (() => any)[],
-  callback: (oldValue: T | undefined) => T
+  callback: (oldValue: T | undefined) => T,
 ): OnReturn<T> {
   const deps = Array.isArray(dependencies) ? dependencies : [dependencies];
   return (oldValue: T | undefined) => {

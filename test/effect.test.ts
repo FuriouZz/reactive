@@ -1,12 +1,5 @@
-import { test, vi, expect } from "vitest";
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  untrack,
-  on,
-} from "../src/index.js";
+import { expect, test, vi } from "vitest";
+import { batch, createEffect, createMemo, createSignal, on, untrack } from "../src/index.js";
 
 test("createEffect()", () => {
   const [greeting, setGreeting] = createSignal("Hello");
@@ -70,7 +63,7 @@ test("Update inside createEffect() with batch()", () => {
       setWho("Pablo");
       setGreeting("¡Hola");
       setPunctuation("!");
-    })
+    }),
   );
 
   expect(onChange).toHaveBeenCalledTimes(2);
@@ -136,7 +129,7 @@ test("on()", () => {
       const value = `${greeting()} ${who()}`;
       onChange(value);
       return value;
-    })
+    }),
   );
 
   setWho("Pablo!");

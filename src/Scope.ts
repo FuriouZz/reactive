@@ -83,7 +83,7 @@ export default class Scope {
    */
   static run(
     scope: Scope,
-    callback: (this: ExposedScope, context: ExposedScope) => void
+    callback: (this: ExposedScope, context: ExposedScope) => void,
   ) {
     try {
       Scope.push(scope);

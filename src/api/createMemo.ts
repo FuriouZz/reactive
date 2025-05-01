@@ -8,7 +8,7 @@ import createSignal from "./createSignal.js";
  * @returns
  */
 export default function createMemo<T>(
-  callback: (oldValue: T | undefined) => T
+  callback: (oldValue: T | undefined) => T,
 ) {
   const [read, write] = createSignal<T>(undefined!);
 

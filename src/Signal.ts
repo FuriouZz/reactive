@@ -1,5 +1,5 @@
-import Scope from "./Scope.js";
 import Effect from "./Effect.js";
+import Scope from "./Scope.js";
 import { SignalOptions } from "./types.js";
 
 /**

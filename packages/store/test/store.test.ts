@@ -1,6 +1,6 @@
-import { test, vi, expect } from "vitest";
 import { createEffect, createMemo } from "@furiouzz/reactive";
-import { createStore, createMutableStore } from "../src/index.js";
+import { expect, test, vi } from "vitest";
+import { createMutableStore, createStore } from "../src/index.js";
 
 test("createStore()", () => {
   const [state, batchUpdate] = createStore({ message: "Hello World" });
@@ -89,7 +89,7 @@ test("Store + Effect (Deep)", () => {
   });
 
   const fullname = createMemo(
-    () => `${state.greeting} ${state.user.firstname} ${state.user.lastname}!`
+    () => `${state.greeting} ${state.user.firstname} ${state.user.lastname}!`,
   );
 
   createEffect(() => onChange(fullname()));
