@@ -1,9 +1,0 @@
-# npm
-node_modules
-
-# workspace
-.vscode
-dist
-types
-vendors
-bin
