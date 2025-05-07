@@ -1,3 +1,4 @@
+import { getRootScope } from "./RootScope.js";
 import type { Callable } from "./types.js";
 
 /**
@@ -5,7 +6,7 @@ import type { Callable } from "./types.js";
  * @public
  */
 export default class Effect {
-  trigger: Callable;
+  trigger: Callable | null;
   _disposed: boolean;
   _isTrackingDependencies: boolean;
 
@@ -15,12 +16,7 @@ export default class Effect {
 
     this.trigger = () => {
       if (this._disposed) return;
-      try {
-        Effect.push(this);
-        effect();
-      } finally {
-        Effect.pop();
-      }
+      getRootScope()?.runEffect(this, effect);
     };
   }
 
@@ -43,21 +39,6 @@ export default class Effect {
    */
   dispose() {
     this._disposed = true;
-  }
-
-  static get Current(): Effect | undefined {
-    const current = Effect.effects[Effect.effects.length - 1];
-    if (current?._isTrackingDependencies) return current;
-    return undefined;
-  }
-
-  static effects: Effect[] = [];
-
-  static push(context: Effect) {
-    Effect.effects.push(context);
-  }
-
-  static pop() {
-    Effect.effects.pop();
+    this.trigger = null;
   }
 }

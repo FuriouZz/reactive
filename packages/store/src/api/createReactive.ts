@@ -1,6 +1,6 @@
-import { Scope } from "@furiouzz/reactive";
+import { getRootScope } from "@furiouzz/reactive";
 import Store from "../Store.js";
-import { DeepPartial, ReactiveProxy } from "../types.js";
+import type { DeepPartial, ReactiveProxy } from "../types.js";
 
 /**
  * Wrap the given object into a store
@@ -13,17 +13,16 @@ export default function createReactive<T extends object>(
   options?: { deep?: boolean },
 ) {
   const store = new Store(target, { readonly: false, deep: options?.deep });
-  const scope = new Scope();
 
   const batchUpdate = (v: DeepPartial<T>) => {
-    Scope.run(scope, () => store.update(v));
+    getRootScope()?.batch(() => store.update(v));
   };
 
   const $store = {
     batchUpdate: batchUpdate,
   };
 
-  const expose = new Map<string | symbol, any>();
+  const expose = new Map<string | symbol, unknown>();
   expose.set("$store", $store);
 
   const proxy = new Proxy(store.proxy, {

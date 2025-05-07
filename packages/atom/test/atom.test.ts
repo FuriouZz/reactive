@@ -71,7 +71,7 @@ test("batch() updates", () => {
   batch(() => {
     greeting("¡Hola");
     who("Pablo!");
-  })();
+  });
 
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");

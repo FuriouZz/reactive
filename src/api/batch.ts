@@ -1,7 +1,7 @@
-import Scope from "../Scope.js";
+import { getRootScope } from "../RootScope.js";
 import type { ExposedScope } from "../types.js";
 
-export type BatchCallback = (this: ExposedScope, scope: ExposedScope) => void;
+export type BatchCallback<T> = (this: ExposedScope, scope: ExposedScope) => T;
 
 /**
  * Register updates and execute them at the end of the scope and execute side effects.
@@ -10,7 +10,6 @@ export type BatchCallback = (this: ExposedScope, scope: ExposedScope) => void;
  * @public
  * @param scope
  */
-export default function batch(callback: BatchCallback) {
-  const scope = new Scope();
-  return () => Scope.run(scope, callback);
+export default function batch<T>(callback: BatchCallback<T>) {
+  return getRootScope()?.batch<T>(callback);
 }

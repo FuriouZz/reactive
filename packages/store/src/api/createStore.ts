@@ -1,6 +1,6 @@
-import { Scope, SignalOptions } from "@furiouzz/reactive";
+import { getRootScope, type SignalOptions } from "@furiouzz/reactive";
 import Store from "../Store.js";
-import { DeepPartial } from "../types.js";
+import type { DeepPartial } from "../types.js";
 
 /**
  * Create an immutable store
@@ -15,9 +15,8 @@ export default function createStore<T extends object>(
 ) {
   const store = new Store(target, options);
 
-  const scope = new Scope();
   const batchUpdate = (v: DeepPartial<T>) => {
-    Scope.run(scope, () => {
+    getRootScope()?.batch(() => {
       store.update(v);
     });
   };

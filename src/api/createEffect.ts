@@ -31,7 +31,7 @@ export default function createEffect<T>(
     lastComputedValue = subscriber(lastComputedValue);
   });
 
-  effect.trigger();
+  effect.trigger?.();
 
   return () => effect.dispose();
 }

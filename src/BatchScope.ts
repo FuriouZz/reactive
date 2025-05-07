@@ -1,6 +1,6 @@
 import type Effect from "./Effect.js";
 import generateID from "./generateID.js";
-import type { Callable, ExposedScope } from "./types.js";
+import type { Callable } from "./types.js";
 
 /**
  * Scope class defines an execution scope.
@@ -10,7 +10,7 @@ import type { Callable, ExposedScope } from "./types.js";
  * Mainly used to reduce side effects calls
  * @public
  */
-export default class Scope {
+export default class BatchScope {
   id!: number;
   #updates: Callable[];
   #sideEffects: Set<Effect>;
@@ -59,44 +59,8 @@ export default class Scope {
       const sideEffects = [...this.#sideEffects];
       this.#sideEffects.clear();
       for (const sideEffect of sideEffects) {
-        sideEffect.trigger();
+        sideEffect.trigger?.();
       }
     }
   };
-
-  static get Current(): Scope | undefined {
-    return Scope.contexts[Scope.contexts.length - 1];
-  }
-
-  static contexts: Scope[] = [];
-
-  static push(context: Scope) {
-    Scope.contexts.push(context);
-  }
-
-  static pop() {
-    Scope.contexts.pop();
-  }
-
-  /**
-   * Run scope with the given context
-   * @param scope
-   * @param scope
-   */
-  static run(
-    scope: Scope,
-    callback: (this: ExposedScope, context: ExposedScope) => void,
-  ) {
-    try {
-      Scope.push(scope);
-      const exposed = {
-        trigger: (action?: "update" | "sideEffects") => scope.trigger(action),
-      };
-      callback.call(exposed, exposed);
-    } finally {
-      Scope.pop();
-    }
-
-    scope.trigger();
-  }
 }

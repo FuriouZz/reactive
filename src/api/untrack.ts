@@ -1,4 +1,4 @@
-import Effect from "../Effect.js";
+import { getRootScope } from "../RootScope.js";
 
 /**
  * Prevent effect to observe dependencies inside the callback
@@ -7,8 +7,8 @@ import Effect from "../Effect.js";
  * @returns
  */
 export default function untrack<T>(callback: () => T): T {
-  Effect.Current?.untrack();
+  getRootScope()?.getCurrentEffect()?.untrack();
   const value = callback();
-  Effect.Current?.track();
+  getRootScope()?.getCurrentEffect()?.track();
   return value;
 }

@@ -1,5 +1,5 @@
-import Effect from "./Effect.js";
-import Scope from "./Scope.js";
+import type Effect from "./Effect.js";
+import { getRootScope } from "./RootScope.js";
 import type { SignalOptions } from "./types.js";
 
 /**
@@ -34,9 +34,8 @@ export default class Signal<T> {
    * @returns
    */
   get() {
-    if (Effect.Current) {
-      this.subscribers.add(Effect.Current);
-    }
+    const effect = getRootScope()?.getCurrentEffect();
+    if (effect) this.subscribers.add(effect);
     return this.rawValue;
   }
 
@@ -57,7 +56,7 @@ export default class Signal<T> {
       if (this.#equals(oldValue, newValue)) return;
     }
 
-    const scope = Scope.Current;
+    const batchScope = getRootScope()?.getCurrentBatchScope();
 
     const update = () => {
       this.rawValue = newValue;
@@ -66,17 +65,17 @@ export default class Signal<T> {
       const subscribers = [...this.subscribers];
       this.subscribers.clear();
 
-      if (scope) {
-        scope.registerEffect(...subscribers);
+      if (batchScope) {
+        batchScope.registerEffect(...subscribers);
       } else {
         for (const effect of subscribers) {
-          effect.trigger();
+          effect.trigger?.();
         }
       }
     };
 
-    if (scope) {
-      scope.registerUpdate(update);
+    if (batchScope) {
+      batchScope.registerUpdate(update);
     } else {
       update();
     }

@@ -2,11 +2,11 @@ import { expect, test, vi } from "vitest";
 import { batch, createEffect, createMemo, createSignal, on, untrack } from "../src/index.js";
 
 test("createEffect()", () => {
+  const onChange = vi.fn();
+
   const [greeting, setGreeting] = createSignal("Hello");
   const [who, setWho] = createSignal("World");
   const [punctuation, setPunctuation] = createSignal("");
-
-  const onChange = vi.fn();
 
   createEffect(() => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
@@ -58,13 +58,13 @@ test("Update inside createEffect() with batch()", () => {
     onChange(`${greeting()} ${who()}${punctuation()}`);
   });
 
-  createEffect(
+  createEffect(() => {
     batch(() => {
       setWho("Pablo");
       setGreeting("¡Hola");
       setPunctuation("!");
-    }),
-  );
+    });
+  });
 
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
