@@ -1,9 +1,9 @@
 import { Extractor, ExtractorConfig } from "@microsoft/api-extractor";
-import { spawnSync } from "child_process";
 import { context } from "esbuild";
-import { writeFileSync } from "fs";
-import { dirname, join, resolve } from "path";
-import { fileURLToPath } from "url";
+import { spawnSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ensureDirectory, ROOT_DIR } from "./common.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -72,13 +72,15 @@ async function compile(input, output, packageDir = "./") {
   ]);
 
   if (!watchMode) {
-    const extractorConfigPath = resolve(ROOT_DIR, `api-extractor.json`);
+    const extractorConfigPath = resolve(ROOT_DIR, "api-extractor.json");
     const extractorConfig = ExtractorConfig.loadFileAndPrepare(extractorConfigPath);
 
     const typeSource = input.replace("src/", "types/").replace(".ts", ".d.ts");
     extractorConfig.mainEntryPointFilePath = join(packageDir, typeSource);
     extractorConfig.untrimmedFilePath = join(rootDir, "dist", `${output}.d.ts`);
-    extractorConfig.reportFilePath = join(rootDir, "temp", `${output}.md`);
+    extractorConfig.reportConfigs.push(
+      { variant: "public", fileName: join(rootDir, "temp", `${output}.md`) },
+    );
 
     Extractor.invoke(extractorConfig, {
       localBuild: true,

@@ -6,15 +6,15 @@ import type { Callable } from "./types.js";
  */
 export default class Effect {
   trigger: Callable;
-  #disposed: boolean;
-  #isTrackingDependencies: boolean;
+  _disposed: boolean;
+  _isTrackingDependencies: boolean;
 
   constructor(effect: Callable) {
-    this.#disposed = false;
-    this.#isTrackingDependencies = true;
+    this._disposed = false;
+    this._isTrackingDependencies = true;
 
     this.trigger = () => {
-      if (this.#disposed) return;
+      if (this._disposed) return;
       try {
         Effect.push(this);
         effect();
@@ -28,36 +28,36 @@ export default class Effect {
    * Track dependencies
    */
   track() {
-    this.#isTrackingDependencies = true;
+    this._isTrackingDependencies = true;
   }
 
   /**
    * Stop tracking dependencies
    */
   untrack() {
-    this.#isTrackingDependencies = false;
+    this._isTrackingDependencies = false;
   }
 
   /**
    * Stop listening signals
    */
   dispose() {
-    this.#disposed = true;
+    this._disposed = true;
   }
 
   static get Current(): Effect | undefined {
-    const current = this.effects[this.effects.length - 1];
-    if (current && current.#isTrackingDependencies) return current;
+    const current = Effect.effects[Effect.effects.length - 1];
+    if (current?._isTrackingDependencies) return current;
     return undefined;
   }
 
   static effects: Effect[] = [];
 
   static push(context: Effect) {
-    this.effects.push(context);
+    Effect.effects.push(context);
   }
 
   static pop() {
-    this.effects.pop();
+    Effect.effects.pop();
   }
 }

@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "ESNext",
+    "target": "es6",
+    "module": "esnext",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "lib": ["es2020", "dom"],
     "downlevelIteration": true,
     "skipLibCheck": true,

@@ -1,4 +1,4 @@
-import Effect from "./Effect.js";
+import type Effect from "./Effect.js";
 import generateID from "./generateID.js";
 import type { Callable, ExposedScope } from "./types.js";
 
@@ -34,7 +34,9 @@ export default class Scope {
    * @param sideEffects
    */
   registerEffect = (...sideEffects: Effect[]) => {
-    sideEffects.flat().forEach((s) => this.#sideEffects.add(s));
+    for (const s of sideEffects.flat()) {
+      this.#sideEffects.add(s);
+    }
   };
 
   /**
@@ -63,17 +65,17 @@ export default class Scope {
   };
 
   static get Current(): Scope | undefined {
-    return this.contexts[this.contexts.length - 1];
+    return Scope.contexts[Scope.contexts.length - 1];
   }
 
   static contexts: Scope[] = [];
 
   static push(context: Scope) {
-    this.contexts.push(context);
+    Scope.contexts.push(context);
   }
 
   static pop() {
-    this.contexts.pop();
+    Scope.contexts.pop();
   }
 
   /**

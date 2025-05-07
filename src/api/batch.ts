@@ -1,9 +1,7 @@
 import Scope from "../Scope.js";
 import type { ExposedScope } from "../types.js";
 
-export interface BatchCallback {
-  (this: ExposedScope, scope: ExposedScope): void;
-}
+export type BatchCallback = (this: ExposedScope, scope: ExposedScope) => void;
 
 /**
  * Register updates and execute them at the end of the scope and execute side effects.

@@ -10,6 +10,7 @@ import createSignal from "./createSignal.js";
 export default function createMemo<T>(
   callback: (oldValue: T | undefined) => T,
 ) {
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const [read, write] = createSignal<T>(undefined!);
 
   createEffect<T>((previousValue) => {

@@ -1,4 +1,4 @@
-import { batch, createEffect } from "@furiouzz/reactive";
+import { batch, createEffect, untrack } from "@furiouzz/reactive";
 import { expect, test, vi } from "vitest";
 import { createAtom } from "../src/index.js";
 
@@ -76,4 +76,23 @@ test("batch() updates", () => {
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
   expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
+});
+
+test("do not track when a value is set", () => {
+  const onChange = vi.fn();
+  const msg = createAtom("Hello");
+
+  createEffect(() => {
+    onChange(untrack(msg));
+    msg("Bonjour");
+  });
+
+  createEffect(() => {
+    onChange(untrack(msg));
+    msg("Hola");
+  });
+
+  expect(onChange).toHaveBeenCalledTimes(2);
+  expect(onChange).toHaveBeenNthCalledWith(1, "Hello");
+  expect(onChange).toHaveBeenNthCalledWith(2, "Bonjour");
 });

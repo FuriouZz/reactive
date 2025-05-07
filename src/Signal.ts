@@ -1,6 +1,6 @@
 import Effect from "./Effect.js";
 import Scope from "./Scope.js";
-import { SignalOptions } from "./types.js";
+import type { SignalOptions } from "./types.js";
 
 /**
  * Create a signal object with a get and a set method
@@ -69,7 +69,9 @@ export default class Signal<T> {
       if (scope) {
         scope.registerEffect(...subscribers);
       } else {
-        subscribers.forEach((effect) => effect.trigger());
+        for (const effect of subscribers) {
+          effect.trigger();
+        }
       }
     };
 

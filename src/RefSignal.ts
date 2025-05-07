@@ -1,5 +1,5 @@
 import Signal from "./Signal.js";
-import { SignalOptions } from "./types.js";
+import type { SignalOptions } from "./types.js";
 
 /**
  * Wrap object field into a Signal
@@ -11,12 +11,12 @@ export default class RefSignal<
 > extends Signal<T[K]> {
   target: T;
   key: K;
-  receiver: any;
+  receiver: unknown;
 
   constructor(
     target: T,
     key: K,
-    receiver?: any,
+    receiver?: unknown,
     options?: SignalOptions<T[K]>,
   ) {
     super(Reflect.get(target, key), options);
