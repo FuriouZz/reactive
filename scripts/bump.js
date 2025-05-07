@@ -1,5 +1,5 @@
-import { spawnSync } from "child_process";
-import { readFileSync, writeFileSync } from "fs";
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import semver from "semver";
 import { SPAWN_OPTIONS } from "./common.js";
 
@@ -10,26 +10,27 @@ function bump(version) {
   spawnSync("pnpm install", SPAWN_OPTIONS);
   spawnSync(
     [
-      `git add package.json`,
+      "git add package.json",
       `git commit -m "Bump ${version}"`,
       `git tag ${version}`,
-      `git push --tags`,
-      `git push`,
+      "git push --tags",
+      "git push",
     ].join(" && "),
     SPAWN_OPTIONS,
   );
 }
 
 function getPackage(release = "patch", identifier = undefined) {
+  let _release = release;
   const pkg = JSON.parse(readFileSync("package.json", { encoding: "utf-8" }));
   if (
     identifier
     && pkg.version.includes(identifier)
     && !process.argv.includes("--force")
   ) {
-    release = "prerelease";
+    _release = "prerelease";
   }
-  const nextVersion = semver.inc(pkg.version, release, undefined, identifier);
+  const nextVersion = semver.inc(pkg.version, _release, undefined, identifier);
   return {
     pkg,
     currentVersion: pkg.version,
