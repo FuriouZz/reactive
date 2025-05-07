@@ -118,6 +118,26 @@ test("untrack()", () => {
   expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
 });
 
+test("signal must be tracked if called outside of untrack()", () => {
+  const onChange = vi.fn();
+  const [active, setActive] = createSignal(false);
+
+  const cb = () => {
+    onChange(active());
+  };
+
+  createEffect(() => {
+    active();
+    untrack(cb);
+  });
+
+  setActive(true);
+  setActive(false);
+  setActive(true);
+
+  expect(onChange).toHaveBeenCalledTimes(4);
+});
+
 test("on()", () => {
   const onChange = vi.fn();
 

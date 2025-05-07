@@ -7,8 +7,9 @@ import { getRootScope } from "../RootScope.js";
  * @returns
  */
 export default function untrack<T>(callback: () => T): T {
-  getRootScope()?.getCurrentEffect()?.untrack();
+  const effect = getRootScope()?.getCurrentEffect();
+  effect?.untrack();
   const value = callback();
-  getRootScope()?.getCurrentEffect()?.track();
+  effect?.track();
   return value;
 }

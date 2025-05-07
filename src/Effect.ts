@@ -1,3 +1,4 @@
+import generateID from "./generateID.js";
 import { getRootScope } from "./RootScope.js";
 import type { Callable } from "./types.js";
 
@@ -6,11 +7,13 @@ import type { Callable } from "./types.js";
  * @public
  */
 export default class Effect {
+  id!: string;
   trigger: Callable | null;
   _disposed: boolean;
   _isTrackingDependencies: boolean;
 
   constructor(effect: Callable) {
+    generateID(this);
     this._disposed = false;
     this._isTrackingDependencies = true;
 
