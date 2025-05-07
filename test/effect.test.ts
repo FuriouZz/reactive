@@ -1,5 +1,5 @@
-import { expect, test, vi } from "vitest";
-import { batch, createEffect, createMemo, createSignal, on, untrack } from "../src/index.js";
+import { assert, expect, test, vi } from "vitest";
+import { batch, createEffect, createMemo, createSignal, getRootScope, on, untrack } from "../src/index.js";
 
 test("createEffect()", () => {
   const onChange = vi.fn();
@@ -141,4 +141,12 @@ test("on()", () => {
   expect(onChange).toHaveBeenCalledTimes(2);
   expect(onChange).toHaveBeenNthCalledWith(1, "Hello World");
   expect(onChange).toHaveBeenNthCalledWith(2, "¡Hola Pablo!");
+});
+
+test("errors are not catched", () => {
+  assert.throws(() => {
+    createEffect(() => {
+      throw new Error("Trigger an error");
+    });
+  }, Error);
 });
